@@ -9,6 +9,7 @@ const navLink = (active: boolean) =>
   `rounded-full px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-teal-500 ${active ? 'bg-teal-50 text-teal-800' : 'text-slate-600 hover:bg-slate-100 hover:text-ink'}`;
 
 const navRoutes = routes.filter((item) => !item.hideInNav);
+const menuRoutes = routes.filter((item) => item.path !== '/login');
 
 export default function SiteLayout({ path, children }: { path: string; children: ReactNode }) {
   const { apiStatus, checkApi } = useApiStatus();
@@ -31,7 +32,7 @@ export default function SiteLayout({ path, children }: { path: string; children:
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#F7F9FC] text-ink">
+    <div className="ss-app-shell relative min-h-screen overflow-x-clip bg-[#F7F9FC] text-ink">
       <a href="#main-content" onClick={(e) => { e.preventDefault(); mainRef.current?.focus(); }} className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">Skip to content</a>
       <GradientBackdrop />
 
@@ -49,6 +50,7 @@ export default function SiteLayout({ path, children }: { path: string; children:
           </nav>
 
           <div className="flex items-center gap-2">
+            <a href={toHref('/demo')} aria-current={path === '/demo' ? 'page' : undefined} className="hidden items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 md:inline-flex">Demo</a>
             {apiStatus === 'disconnected' ? (
               <button type="button" onClick={() => void checkApi()} className="hidden items-center gap-2 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-400 sm:inline-flex"><span className="h-2 w-2 rounded-full bg-rose-500" />Offline · retry</button>
             ) : null}
@@ -74,7 +76,7 @@ export default function SiteLayout({ path, children }: { path: string; children:
         {menuOpen ? (
           <nav id="mobile-menu" aria-label="Main" className="border-t border-slate-200/70 px-4 py-3 lg:hidden">
             <ul className="grid gap-1">
-              {navRoutes.map((item) => <li key={item.path}><a href={toHref(item.path)} aria-current={item.path === path ? 'page' : undefined} className={`block ${navLink(item.path === path)}`}>{item.label}</a></li>)}
+              {menuRoutes.map((item) => <li key={item.path}><a href={toHref(item.path)} aria-current={item.path === path ? 'page' : undefined} className={`block ${navLink(item.path === path)}`}>{item.label}</a></li>)}
               <li>{session ? <button type="button" onClick={() => { signOut(); setMenuOpen(false); }} className={`block w-full text-left ${navLink(false)}`}>Log out ({session.name})</button> : <a href={toHref('/login')} className={`block ${navLink(path === '/login')}`}>Log in</a>}</li>
             </ul>
           </nav>

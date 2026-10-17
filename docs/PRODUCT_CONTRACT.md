@@ -1,6 +1,6 @@
 # SkillScope Product Contract
 
-**Contract status:** Stage 2 — MVP boundary defined; awaiting approval before Stage 3  
+**Contract status:** Foundational product contract (originally defined in Stage 2; implementation status is tracked in `docs/PROJECT_STATUS.md`)  
 **Product:** SkillScope AI  
 **MVP context:** Hackathon-grade, end-to-end demonstrable vertical slice built from scratch. This contract defines intended product behavior; it does not claim later-stage features are already implemented.
 
@@ -162,3 +162,8 @@ The final MVP is accepted only when the following user-visible and technical beh
 ## 10. Contract change control
 
 Any change to the core journey, age-mode behavior, data integrity rules, privacy constraints, or acceptance criteria must be recorded in `docs/DECISIONS.md` with the reason and effect on stage scope. A stage must not quietly expand its work into later stages. When a stage is approved, preserve the accepted contract and update it only through an explicit documented decision.
+
+
+## Final implementation checkpoint — Stages 19–20 (2026-10-17)
+
+This contract's historical heading describes when the product behavior was specified, not the current build status. The greenfield prototype now has a tested baseline → challenge → evidence → recommendation/next-action loop, persistence, source/provenance explanations, correction/deletion and synthetic demo fixtures for all three age modes. The final automated suite reports 234 passed; see `docs/VALIDATION_REPORT.md` and `docs/PROJECT_STATUS.md`. The evidence and recommendation behavior has engineering tests but no psychometric/predictive/outcome validation. The app remains demo-only until the production gates in `docs/PRIVACY_AND_SAFETY.md` are satisfied.

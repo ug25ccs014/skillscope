@@ -100,3 +100,44 @@ def test_profile_age_selects_age_scaled_variant(client):
         assert out.status_code==200
         assert out.json()['age_band']==age
         assert out.json()['objective_score']==4
+
+
+# Stage 19 scenario 9: observed performance and self-reported enjoyment must remain distinct.
+def test_stage19_low_performance_high_enjoyment_and_high_performance_low_enjoyment_are_independent(client):
+    low_score_profile = profile(client)
+    high_score_profile = profile(client)
+    challenge = client.get('/api/challenges/pattern-detective').json()
+
+    def submit_with(score, enjoyment, profile_id):
+        response = client.post('/api/challenges/pattern-detective/submissions', json={
+            'profile_id': profile_id,
+            'output': 'SYNTHETIC TEST: the response describes a sample pattern.',
+            'rubric_observations': [
+                {'criterion_id': criterion['criterion_id'], 'score': score,
+                 'observation': f'Synthetic rubric observation at score {score}.'}
+                for criterion in challenge['rubric']
+            ],
+            'enjoyment': enjoyment,
+            'difficulty_reported': 3,
+            'confidence': 3,
+            'willingness_to_continue': 4 if enjoyment >= 4 else 1,
+            'reflection': 'Synthetic test reflection.',
+        })
+        assert response.status_code == 200, response.text
+        return response.json()
+
+    low = submit_with(0, 5, low_score_profile['profile_id'])
+    high = submit_with(2, 1, high_score_profile['profile_id'])
+    assert low['objective_score'] == 0 and high['objective_score'] == high['objective_max_score']
+    assert low['objective_score'] < high['objective_score']
+    assert low['criteria'][0]['score'] != high['criteria'][0]['score']
+
+    low_evidence = client.get(f"/api/student-profiles/{low_score_profile['profile_id']}/evidence").json()['items'][0]
+    high_evidence = client.get(f"/api/student-profiles/{high_score_profile['profile_id']}/evidence").json()['items'][0]
+    assert low_evidence['signal_dimension'] == high_evidence['signal_dimension'] == 'demonstrated_performance'
+    assert low_evidence['reported_enjoyment'] == 5 and high_evidence['reported_enjoyment'] == 1
+    assert low_evidence['context']['objective_score'] == 0
+    assert high_evidence['context']['objective_score'] == high['objective_max_score']
+    # Self-reported enjoyment remains a separate field and is never substituted for the rubric score.
+    assert low_evidence['reported_enjoyment'] != low_evidence['context']['objective_score']
+    assert high_evidence['reported_enjoyment'] != high_evidence['context']['objective_score']

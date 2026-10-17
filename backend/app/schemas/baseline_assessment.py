@@ -5,8 +5,9 @@ This is an original SkillScope baseline, not a validated psychometric instrument
 from __future__ import annotations
 from enum import Enum
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.schemas.student_evidence import AgeBand
+from app.schemas.privacy_validation import validate_user_text
 
 class BaselineMode(str, Enum):
     DISCOVER_AND_SHAPE = "discover_and_shape"
@@ -55,6 +56,12 @@ class BaselineAssessment(BaseModel):
 
 class BaselineResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("answer", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
+
     item_id: str
     skipped: bool = False
     answer: str | None = Field(default=None, max_length=2000)

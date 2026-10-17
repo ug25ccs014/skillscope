@@ -38,6 +38,11 @@ export function useSavedProfile(): boolean {
 }
 
 const gateCopy = {
+  baseline: {
+    eyebrow: 'Baseline',
+    title: 'A starting snapshot needs a profile.',
+    body: 'Create a profile first, so your answers can be saved and corrected later. Then take a short baseline across different areas.',
+  },
   careers: {
     eyebrow: 'Career possibilities',
     title: 'Possibilities need evidence first.',
@@ -96,7 +101,7 @@ export function ProfileGate({ kind }: { kind: keyof typeof gateCopy }) {
             </div>
           </div>
           <div className="float-soft rounded-[2rem] border border-slate-100 bg-gradient-to-br from-teal-50 via-white to-indigo-50 p-6">
-            {kind === 'careers' ? <CareersGhost /> : <PlanGhost />}
+            {kind === 'plan' ? <PlanGhost /> : <CareersGhost />}
             
           </div>
         </div>

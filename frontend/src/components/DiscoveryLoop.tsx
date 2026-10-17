@@ -108,7 +108,7 @@ export default function DiscoveryLoop({ apiBaseUrl }: Props) {
         setState(null);
         window.dispatchEvent(new Event('skillscope-profile-changed'));
       }
-      setError(`${message} Please try again.`);
+      setError(`${message} Check that the backend is running and that this browser profile still exists.`);
     } finally {
       setLoading(false);
     }
@@ -210,11 +210,11 @@ export default function DiscoveryLoop({ apiBaseUrl }: Props) {
   };
 
   return (
-    <section id="discovery-loop" className="border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="discovery-loop-heading">
+    <section id="discovery-loop" className="ss-section scroll-mt-28 border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="discovery-loop-heading">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Longitudinal discovery</p>
+            <p className="ss-section-kicker text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Longitudinal discovery</p>
             <h1 id="discovery-loop-heading" className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">One activity changes the next step.</h1>
           </div>
           <p className="max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">SkillScope saves the observable task result and your reflection separately. The next activity is selected from recorded exposure, your stated interpretation, and your chosen journey preference—not from a hidden personality or career-fit score.</p>
@@ -292,6 +292,7 @@ export default function DiscoveryLoop({ apiBaseUrl }: Props) {
 
               {lastResult ? <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" role="status"><p className="text-xs font-bold uppercase tracking-wide text-teal-800">Activity saved</p><h3 className="mt-1.5 text-lg font-semibold text-ink">Rubric result: {lastResult.objective_score === null ? 'Not enough evidence' : `${lastResult.objective_score}/${lastResult.objective_max_score}`}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{lastResult.explanation}</p></div> : null}
               {state.last_completion ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">What changed</p><p className="mt-2 text-sm leading-6 text-slate-700">{state.what_changed}</p><p className="mt-2 text-sm font-semibold text-slate-800">Next: {state.next_step}</p></div> : null}
+              {state.last_completion ? <div className="flex flex-wrap gap-3"><a href="#/careers" className="inline-flex items-center rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-teal-500/20">Review career possibilities</a><a href="#/profile" className="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-300 hover:text-teal-800 focus:outline-none focus:ring-4 focus:ring-teal-500/20">Review saved evidence</a></div> : null}
               <p className="text-xs leading-5 text-slate-400">{state.notice} No reminders or background monitoring are running. Loop version {state.loop_policy_version}.</p>
             </div>
           </div>

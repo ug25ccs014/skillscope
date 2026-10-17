@@ -3,6 +3,7 @@ import { toHref } from '../router';
 const steps = [
   { path: '/start', label: 'Start', icon: 'M12 3v18M3 12h18' },
   { path: '/profile', label: 'Profile', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0' },
+  { path: '/baseline', label: 'Baseline', icon: 'M4 20V10m6 10V4m6 16v-7m4 7H2' },
   { path: '/challenges', label: 'Challenges', icon: 'M13 3 5 14h6l-1 7 8-11h-6l1-7Z' },
   { path: '/careers', label: 'Careers', icon: 'M4 7h16v12H4zM9 7V5h6v2' },
   { path: '/plan', label: 'Plan', icon: 'M5 19c4 0 3-6 7-6s3-6 7-6M5 19h.01M19 7h.01' },

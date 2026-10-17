@@ -11,9 +11,12 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.schemas.pathway_plans import DesiredTimeline, PlanInput
 from app.schemas.recommendations import RecommendationSource, SourcedPathwayFact
-from app.schemas.student_evidence import AgeBand, ConsentBasis, StudentProfileCreate
+from app.schemas.student_evidence import (
+    AgeBand, ConsentBasis, StudentProfileCreate, EvidenceCreate, EvidenceType, SignalDimension,
+    EvidenceSourceKind, UncertaintyLevel, UserInterpretation,
+)
 from app.services.evidence_ledger import EvidenceLedgerRepository
-from app.services.pathway_plans import PathwayPlanRepository, build_pathway_plan
+from app.services.pathway_plans import PathwayPlanRepository, build_pathway_plan, _requirement_catalog
 
 
 def source(label: str = "Software Developers") -> RecommendationSource:
@@ -209,3 +212,69 @@ def test_api_creates_plan_and_returns_history(tmp_path, monkeypatch):
     assert latest.status_code == 200, latest.text
     history = client.get(f"/api/pathway-plans/{profile.profile_id}/history")
     assert history.status_code == 200 and len(history.json()) == 1
+
+
+# Stage 19 validation scenarios: action usefulness and qualification-data honesty.
+def test_stage19_adult_clear_target_and_portfolio_gets_practical_gap_analysis(tmp_path):
+    plans, evidence, profile, _ = repo_for(tmp_path, AgeBand.AGE_18_PLUS, "Become a software developer")
+    portfolio = evidence.add_evidence(profile.profile_id, EvidenceCreate(
+        evidence_type=EvidenceType.PROJECT_PORTFOLIO,
+        signal_dimension=SignalDimension.EXPERIENCE_EXPOSURE,
+        title="Synthetic sample portfolio project",
+        observation="Used Critical Thinking to break down the problem; built a small Python API, wrote tests, and documented how to run it.",
+        source_kind=EvidenceSourceKind.USER_ADDED_PROJECT,
+        uncertainty=UncertaintyLevel.MEDIUM,
+        user_interpretation=UserInterpretation.NOT_INTERPRETED,
+        domain="technology",
+        context={"synthetic_test_fixture": True, "portfolio_status": "self_reported"},
+    ))
+    plan = plans.generate(profile.profile_id, PlanInput(
+        current_skills_summary="Python",
+        education_summary="Undergraduate computer science student",
+        experience_summary="A self-reported portfolio API with tests and documentation",
+        available_hours_per_week=5,
+        desired_timeline=DesiredTimeline.DAYS_90,
+    ))
+    assert plan is not None and plan.mode == "develop_and_optimize"
+    assert plan.timebox.status == "time_bounded"
+    assert plan.timebox.available_hours_per_week == 5
+    assert plan.skills_to_check_or_develop
+    assert any(action.action_type in {"validate", "build", "document", "feedback", "learn"} for action in plan.actions)
+    assert str(portfolio.evidence_id) in {str(eid) for action in plan.actions for eid in action.evidence_ids} or any(
+        "self-reported" in gap.explanation.casefold() or gap.status == "mentioned_in_evidence"
+        for gap in plan.skills_to_check_or_develop
+    )
+    assert all("probability" not in action.why_this_step.casefold() for action in plan.actions)
+
+
+def test_stage19_stale_or_source_less_qualification_is_preserved_but_not_asserted_as_prerequisite(tmp_path):
+    recommendations = recommendation_set(uuid4(), AgeBand.AGE_18_PLUS, "Software developer")
+    stale_source = source("Retired developer credential").model_dump(mode="json")
+    stale_source["quality_status"] = "stale"
+    cards = [{
+        "node_id": "occupation:software-developers",
+        "relationships": [{
+            "relation_type": "requires_qualification",
+            "to_label": "Retired developer credential",
+            "source_references": [stale_source],
+        }],
+        "skills": [],
+    }, {
+        "node_id": "occupation:graphic-designers",
+        "relationships": [{
+            "relation_type": "requires_qualification",
+            "to_label": "Unverified visual-design credential",
+            "source_references": [],
+        }],
+        "skills": [],
+    }]
+    requirements = _requirement_catalog(recommendations, cards)
+    assert not any(item.status == "source_backed_requirement" for item in requirements)
+    retired = next(item for item in requirements if item.label == "Retired developer credential")
+    assert retired.status == "not_available_in_catalog"
+    assert retired.is_prerequisite is None
+    assert retired.source_references[0].quality_status == "stale"
+    assert "not asserted as a current prerequisite" in retired.statement
+    unverified = next(item for item in requirements if item.label == "Unverified visual-design credential")
+    assert unverified.status == "not_available_in_catalog"
+    assert unverified.source_references == []

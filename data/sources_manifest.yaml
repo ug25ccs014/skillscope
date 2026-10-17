@@ -1,5 +1,5 @@
-# Stage 4 source register. This manifest documents decisions and access feasibility.
-# No external source is integrated until a permitted fetch/import is implemented and verified.
+# Source register and ingestion-state manifest. Curated extracts may be imported while full external sources remain separate.
+# A curated sample integration never implies that its entire upstream taxonomy is imported or live.
 manifest_version: 3
 project: SkillScope AI
 last_reviewed: '2026-10-17'
@@ -209,48 +209,46 @@ sources:
 
 - id: onet_online_curated_sample
   publisher: U.S. Department of Labor, Employment and Training Administration; National Center for O*NET Development
-  name: O*NET OnLine curated occupation extract
+  name: O*NET OnLine curated occupation-profile extract
   official_url: https://www.onetonline.org/
-  license_url: https://www.onetonline.org/help/license
-  geographic_scope: United States occupational reference context
-  source_role: Small source-backed fallback extract covering nine varied O*NET OnLine occupational profiles, including selected tasks and Essential Skills section labels, when the full O*NET 31.0 bulk package cannot be fetched in the current runtime.
-  selection: bundled_curated_extract
+  geographic_scope: United States
+  source_role: Source-linked curated occupation profile references and selected paraphrased work activities; supplementary occupational context only.
+  selection: selected_curated_profile_extract
   integration_status: curated_extract_imported_not_full_source_integrated
-  planned_access_method: Replace or expand only through a version-pinned official O*NET Database or other separately verified permitted source route.
-  runtime_access_status: bundled_static_extract_imported; runtime_fetch_not_performed
-  source_page_review_status: official O*NET OnLine licence/reference reviewed on 2026-10-17
-  version_or_release: Curated extract captured 2026-10-17; records retain their source profile identifiers.
-  license_terms_status: Curated content is limited to a small adapted extract and excludes known third-party content; exact O*NET OnLine licence/exclusions govern the included material.
-  attribution_and_changes: Publish O*NET attribution and clearly disclose SkillScope modifications; do not imply USDOL/ETA endorsement.
+  planned_access_method: Bundled manually curated extract with per-record URLs and adaptation notes. Do not represent this snapshot as a full O*NET Database import or live feed.
+  runtime_access_status: curated_snapshot_imported; runtime_fetch_performed_false; bulk_database_download_failed_dns
+  source_page_review_status: cited_profile_pages_reviewed_and_curated_on_2026-10-17
+  version_or_release: O*NET OnLine profile pages labelled Updated 2026; local curated extract captured 2026-10-17. Not a versioned full Database release.
+  license_terms_status: The cited O*NET OnLine profile terms were reviewed for the included extract. The extract records attribution and third-party-content exclusions; exact per-record terms should be rechecked before production redistribution.
+  attribution_and_changes: Credit the U.S. Department of Labor / Employment and Training Administration and National Center for O*NET Development, link the source record and applicable licence, and identify SkillScope paraphrasing/selection. Do not imply endorsement.
   limits:
-  - This is not the complete O*NET database, is not a live feed, and was imported from a bundled static snapshot rather than a runtime fetch.
-  - U.S. occupational context must not be treated as Indian labour demand, wages, qualifications, or individual aptitude.
-  - Curated paraphrases are SkillScope adaptations and must remain distinguishable from original source values. SkillScope coverage-domain tags are editorial metadata, not official categories. Essential Skill labels are listed in the cited occupation pages, but stable source skill-element IDs and ratings were not captured; they are occupation-scoped references only.
+  - This is a small static curated extract, not live data and not the full O*NET Database.
+  - The source context is the United States and cannot substantiate Indian job demand, wages, formal qualifications, or local hiring prerequisites.
+  - Selected activity descriptions are SkillScope paraphrases; they are not exhaustive job duties.
+  - Essential-skill labels are occupation-scoped references without stable source skill-element IDs/ratings in this extract, not student scores.
   reviewed_on: '2026-10-17'
   evidence_urls:
   - https://www.onetonline.org/
   - https://www.onetonline.org/help/license
 - id: esco_curated_sample
   publisher: European Commission, Directorate-General for Employment, Social Affairs and Inclusion
-  name: ESCO curated occupation extract
+  name: ESCO curated software-developer concept reference
   official_url: https://esco.ec.europa.eu/en/use-esco/download
-  license_terms_url: https://esco.ec.europa.eu/en/about-esco/faq?page=1
-  geographic_scope: European classification context
-  source_role: Small source-backed fallback extract for one ESCO occupation concept; used for provenance and demonstration alongside nine O*NET OnLine profile extracts while the official package workflow is not available in the current runtime.
-  selection: bundled_curated_extract
+  geographic_scope: European occupational classification context
+  source_role: One curated ESCO occupation concept used to preserve a distinct taxonomy identity and illustrate reviewed relatedness to O*NET; not a full ESCO import.
+  selection: selected_single_concept_curated_extract
   integration_status: curated_extract_imported_not_full_source_integrated
-  planned_access_method: Import a version-pinned official ESCO CSV package after package selection, retrieval, checksum, language, and terms are verified.
-  runtime_access_status: bundled_static_extract_imported; runtime_fetch_not_performed
-  source_page_review_status: official ESCO download, structure, API and reuse conditions reviewed on 2026-10-17
-  version_or_release: ESCO v1.2.1 context retained in the curated record; official bulk package not downloaded in this runtime.
-  license_terms_status: ESCO classification may be reused under the European Commission document reuse framework with required acknowledgement and clear identification of adaptations.
-  attribution_and_changes: Publish the required ESCO acknowledgement and clearly identify SkillScope adaptations.
+  planned_access_method: Bundled single-concept reference with retained URI and source notes. Import further ESCO records only from a version-pinned official package after validating actual package metadata and reuse conditions.
+  runtime_access_status: curated_snapshot_imported; runtime_fetch_performed_false; api_probe_failed_dns
+  source_page_review_status: official_esco_download_and_reuse_pages_reviewed_on_2026-10-17
+  version_or_release: Curated concept references ESCO software-developer occupation URI; exact source package export not locally imported or attested, so the concept is not claimed to represent a complete pinned ESCO data release.
+  license_terms_status: ESCO classification reuse is described by the European Commission under its document reuse decision; retain attribution and clearly mark SkillScope adaptations. Confirm exact package/version and terms for any future bulk import.
+  attribution_and_changes: State that the service uses the ESCO classification of the European Commission, retain the ESCO concept URI, and identify SkillScope selection or adaptation.
   limits:
-  - One curated concept is not a complete ESCO dataset or live API result; it was imported from a bundled static snapshot rather than a runtime fetch. Crosswalks to O*NET OnLine remain editorially reviewed related mappings, not exact equivalences.
-  - European classification context does not establish Indian hiring demand, salary, regulated qualifications, or individual fit.
-  - Exact bulk-package version must be verified at import time; do not infer it from the current website version alone.
+  - This is a static single-concept curated reference, not live API data and not the full ESCO classification package.
+  - European taxonomy relationships do not establish equivalent Indian occupational requirements or local hiring demand.
+  - A reviewed-related mapping to an O*NET concept is not an assertion of exact equivalence.
   reviewed_on: '2026-10-17'
   evidence_urls:
   - https://esco.ec.europa.eu/en/use-esco/download
-  - https://esco.ec.europa.eu/en/structure-esco-downloadable-datasets
   - https://esco.ec.europa.eu/en/about-esco/faq?page=1

@@ -141,3 +141,73 @@ html[data-mode='develop'] { --mode-a: #7C8CFF; --mode-b: #2DD4BF; --mode-c: #A5B
   .flip-back { transform: none; }
   .flip-face[data-hidden='true'] { visibility: hidden; }
 }
+
+/* ---------- Stage 16–20 motion graphics ---------- */
+@keyframes node-ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.35); opacity: 0; } }
+.node-ring { transform-box: fill-box; transform-origin: center; animation: node-ring 2.6s ease-out infinite; }
+@keyframes shield-halo { 0%, 100% { transform: scale(.94); opacity: .55; } 50% { transform: scale(1.04); opacity: .12; } }
+.shield-halo { transform-box: fill-box; transform-origin: center; animation: shield-halo 4.2s ease-in-out infinite; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+.orbit { animation: orbit 14s linear infinite; }
+@keyframes sync-ping { 0% { transform: scale(1); opacity: .6; } 80%, 100% { transform: scale(2.6); opacity: 0; } }
+.sync-ping { animation: sync-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+.baseline-bar { transition: width 520ms var(--ease-out); }
+.step-dot { transition: transform var(--dur-base) var(--ease-out), background-color var(--dur-base) ease; }
+.step-dot-active { transform: scale(1.15); box-shadow: 0 0 0 4px color-mix(in srgb, var(--mode-a) 35%, transparent); }
+@keyframes stage-rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.stage-rise { opacity: 0; animation: stage-rise 560ms var(--ease-out) forwards; }
+@keyframes line-draw { to { stroke-dashoffset: 0; } }
+.line-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: line-draw 1400ms var(--ease-out) forwards; }
+.demo-badge { background-image: repeating-linear-gradient(135deg, rgba(180, 83, 9, .10) 0 8px, transparent 8px 16px); }
+@media (prefers-reduced-motion: reduce) {
+  .node-ring, .shield-halo, .orbit, .sync-ping { animation: none; }
+  .baseline-bar, .step-dot { transition: none; }
+  .step-dot-active { transform: none; }
+  .stage-rise { opacity: 1; animation: none; }
+  .line-draw { stroke-dashoffset: 0; animation: none; }
+}
+
+/* ---------- Accessibility and shared design tokens (Stages 15 and 18) ----------
+   Kept from the audited Stage 15–18 design language so the themed UI still passes the same contrast,
+   focus and small-screen checks. */
+:root {
+  --ss-ink: #12243a;
+  --ss-muted: #536579;
+  --ss-canvas: #f7f9fc;
+  --ss-surface: #ffffff;
+  --ss-line: #dce5ed;
+  --ss-teal: #117369;
+  --ss-teal-soft: #e8f7f4;
+  --ss-indigo: #4338a8;
+  --ss-focus: #087f73;
+  --ss-radius-card: 1.25rem;
+  --ss-shadow-card: 0 10px 28px rgba(18, 36, 58, 0.045);
+}
+html { scroll-padding-top: 7rem; }
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+p, li, dd, dt, label, summary { overflow-wrap: anywhere; }
+img, svg, video, canvas { max-width: 100%; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { min-width: 0; max-width: 100%; }
+textarea { resize: vertical; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--ss-teal); }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--ss-focus); outline-offset: 3px; }
+button:disabled { cursor: not-allowed; }
+/* Tailwind slate-400 is too light for small metadata on light surfaces; darken it for AA-sized text. */
+.text-slate-400 { color: #5c6b7d; }
+a { text-underline-offset: 0.18em; }
+summary { cursor: pointer; }
+section[id] { scroll-margin-top: 7rem; min-width: 0; }
+.ss-app-shell { background-color: var(--ss-canvas); }
+.ss-section { min-width: 0; border-top-color: var(--ss-line); }
+.ss-section > div { min-width: 0; }
+.ss-section-kicker { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; line-height: 1.4; text-transform: uppercase; }
+.ss-panel { min-width: 0; border: 1px solid var(--ss-line); border-radius: var(--ss-radius-card); background: rgba(255, 255, 255, 0.96); box-shadow: var(--ss-shadow-card); }
+@media (max-width: 640px) {
+  html { scroll-padding-top: 6rem; }
+  section[id] { scroll-margin-top: 6rem; }
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px; }
+  button { min-height: 2.625rem; }
+}
+/* In-app "reduce motion" switch (Privacy & settings). Mirrors the OS preference for every effect above. */
+html[data-reduce-motion='on'] *, html[data-reduce-motion='on'] *::before, html[data-reduce-motion='on'] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+html[data-reduce-motion='on'] .reveal { opacity: 1; transform: none; }

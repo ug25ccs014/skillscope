@@ -4,7 +4,8 @@ import HomePage from './pages/HomePage';
 import StartPage from './pages/StartPage';
 import SourcesPage from './pages/SourcesPage';
 import LoginPage from './pages/LoginPage';
-import { ProfilePage, ChallengesPage, CareersPage, PlanPage } from './pages/FlowPages';
+import { ProfilePage, BaselinePage, ChallengesPage, CareersPage, PlanPage } from './pages/FlowPages';
+import DemoPage from './pages/DemoPage';
 import { toHref, useRoute } from './router';
 
 function NotFoundPage() {
@@ -21,10 +22,12 @@ const pages: Record<string, ComponentType> = {
   '/': HomePage,
   '/start': StartPage,
   '/profile': ProfilePage,
+  '/baseline': BaselinePage,
   '/challenges': ChallengesPage,
   '/careers': CareersPage,
   '/plan': PlanPage,
   '/sources': SourcesPage,
+  '/demo': DemoPage,
   '/login': LoginPage,
 };
 

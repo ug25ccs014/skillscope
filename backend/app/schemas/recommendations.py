@@ -135,6 +135,11 @@ class CareerHypothesisRecommendation(BaseModel):
     confidence_breakdown: ConfidenceBreakdown
     rationale: list[str]
     matches: list[RecommendationMatch] = Field(default_factory=list)
+    # Count and latest timestamp cover all distinct evidence considered for this hypothesis;
+    # evidence_used is a bounded display trace for UI performance.
+    distinct_observation_count: int = Field(default=0, ge=0)
+    most_recent_observation_at: str | None = None
+    evidence_detail_limit: int = Field(default=8, ge=1, le=100)
     evidence_used: list[RecommendationEvidenceReference] = Field(default_factory=list)
     evidence_gaps: list[RecommendationGap] = Field(default_factory=list)
     source_backed_pathway_facts: list[SourcedPathwayFact] = Field(default_factory=list)

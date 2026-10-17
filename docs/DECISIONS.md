@@ -121,16 +121,18 @@
 Student records are timestamped, typed observations with context, source kind, uncertainty and capture-time consent metadata. The application does not infer an overall ability/aptitude/career-fit score. Empty dimensions are `unknown`, and explicitly user-labelled conflicts remain `mixed`. Goal changes append dated statements. Numeric task results must retain their own rubric/scale. Repeated in-product behavior is recorded only with per-item consent and activity/time-window context; background cross-app tracking is out of scope. Consent is presently a self-attestation and the API has no authentication, so real students/minors must not use a public deployment until the production controls in `docs/STUDENT_EVIDENCE_LEDGER.md` are implemented.
 
 
-## Motion layer decisions (M0 to M2) — 2026-10-17
+## D-015 — Validation is behavioral, not psychometric
 
-**Decision M-1 — Dependencies.** Added `lenis`, `gsap` + `@gsap/react`, `three` + `@react-three/fiber` (+ `@types/three`), and self-hosted fonts `@fontsource-variable/inter` and `@fontsource-variable/fraunces`. Versions are caret ranges chosen from what was known to support React 19; **they were not installed or verified in the build environment (no npm access)**. Confirm with `npm install` and pin exact versions afterwards.
+**Decision:** Treat Stage 19 test results as software/data-contract verification only. Never translate passing unit tests, interest reflections, occupational text overlap, or challenge rubrics into a claim of validated aptitude, career-fit probability, employability, fairness, or career outcomes.
 
-**Decision M-2 — GSAP licence.** GSAP and ScrollTrigger are believed to be free to use under GSAP's standard licence since GSAP 3.13, with a restriction on building products that compete with GSAP's own visual animation tools. This was **not re-checked online here**; read https://gsap.com/standard-license before any public release and record the outcome in this file.
+**Reason:** Engineering correctness and empirical validity answer different questions. A future consent-based pilot needs its own protocol, analysis plan and approval.
 
-**Decision M-3 — drei, Motion and ShaderGradient not added yet.** Nothing built so far needs `@react-three/drei` or `motion/react` (they arrive with M3 to M5). `@shadergradient/react` was left out because its peer dependencies and React 19 compatibility could not be checked offline and a wrong peer set could break `npm install`. The living gradient is plain CSS (`GradientBackdrop`) driven by the same mode variables. Add ShaderGradient later behind `LazyCanvas` if wanted.
+**Constraint:** The test matrix and unverified validation categories must remain visible in `docs/VALIDATION_REPORT.md`.
 
-**Decision M-4 — Honest motion.** Everything built so far is decorative (constellation, backdrop, tilt, theme cross-fade) and is marked `DECORATIVE`. None of it represents data. The mode cards on Home only preview a look; they do not change calibration or any saved data. On the Start page the theme follows the age typed (and then the API's `age_mode` after calibration).
+## D-016 — One local synthetic demo path is the release baseline
 
-**Decision M-5 — Privacy.** Fonts are self-hosted through Fontsource (no Google Fonts call). The selected theme mode is held in memory only. The only new browser storage key is an optional developer override `skillscope_motion` ("off" or "nowebgl").
+**Decision:** Use three idempotently seeded `synthetic_demo` fixtures across the 10–14, 15–17 and 18+ age bands, with the teen fixture available for a live challenge/evidence/next-step walkthrough. Keep the walkthrough restricted to loopback hosts by default.
 
-**Decision M-6 — Fallbacks.** Reduced motion, `saveData`, low core count or memory, or no WebGL: no Lenis, no pinning, no WebGL; the hero renders a still SVG constellation. Core flows never import motion code paths that can fail.
+**Reason:** Judges and developers need a repeatable journey that survives clean database initialization and can demonstrate a real API state transition without external service credentials.
+
+**Constraint:** Fixtures are not users, are not evidence of effectiveness, and must never be mixed with real personal data. Production student-data access remains blocked until identity, authorization and verified consent are implemented.

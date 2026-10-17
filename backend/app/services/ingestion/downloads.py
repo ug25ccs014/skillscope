@@ -7,8 +7,10 @@ import json
 import math
 import os
 import time
+import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlparse
@@ -29,6 +31,7 @@ from app.services.ingestion.common import (
     safe_host,
     write_json_atomic,
 )
+from app.config import external_cache_ttl_seconds, resolve_database_path
 
 ONET_LICENSE_URL = "https://www.onetcenter.org/license_db.html"
 ONET_RELEASE_URL = "https://www.onetcenter.org/db_releases.html"
@@ -135,6 +138,126 @@ def _validate_csv_header(path: Path, asset: SourceAsset) -> list[str]:
     return header
 
 
+def _verified_cache_metadata(target_path: Path, asset: SourceAsset, ttl_seconds: int) -> tuple[dict[str, Any], float] | None:
+    """Return a fresh cached asset only when its sidecar, timestamp and checksum all verify."""
+    if ttl_seconds <= 0 or not target_path.is_file():
+        return None
+    sidecar = Path(str(target_path) + ".metadata.json")
+    if not sidecar.is_file():
+        return None
+    try:
+        metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+        if not isinstance(metadata, dict):
+            return None
+        if metadata.get("asset_id") != asset.asset_id or metadata.get("source_url") != asset.url:
+            return None
+        if metadata.get("source_version") != asset.source_version:
+            return None
+        expected_checksum = metadata.get("sha256")
+        if not isinstance(expected_checksum, str) or len(expected_checksum) != 64:
+            return None
+        actual_checksum = sha256_file(target_path)
+        if actual_checksum != expected_checksum:
+            return None
+        retrieved = metadata.get("retrieved_at")
+        if not isinstance(retrieved, str):
+            return None
+        retrieved_at = datetime.fromisoformat(retrieved.replace("Z", "+00:00"))
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            return None
+        age_seconds = (datetime.now(UTC) - retrieved_at.astimezone(UTC)).total_seconds()
+        # A significantly future-dated sidecar is not trusted as a fresh cache entry.
+        if age_seconds < -300 or age_seconds > ttl_seconds:
+            return None
+        header = _validate_csv_header(target_path, asset)
+        if metadata.get("header_validation") != "passed":
+            return None
+        if metadata.get("header") and list(metadata["header"]) != header:
+            return None
+        return metadata, max(0.0, age_seconds)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError, IngestionError):
+        return None
+
+
+def _retry_after_seconds(headers: Any) -> float | None:
+    """Parse numeric or HTTP-date Retry-After; callers cap waits to avoid hanging workers."""
+    raw = headers.get("retry-after") if headers is not None else None
+    if not raw:
+        return None
+    try:
+        return max(0.0, float(raw.strip()))
+    except (ValueError, AttributeError):
+        try:
+            target = parsedate_to_datetime(str(raw))
+            if target.tzinfo is None:
+                target = target.replace(tzinfo=UTC)
+            return max(0.0, (target.astimezone(UTC) - datetime.now(UTC)).total_seconds())
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+
+def _record_cache_state(
+    asset: SourceAsset,
+    *,
+    cache_status: str,
+    source_uri: str,
+    source_version: str | None = None,
+    retrieved_at: str | None = None,
+    expires_at: str | None = None,
+    checksum_sha256: str | None = None,
+    last_attempt_at: str | None = None,
+    last_success_at: str | None = None,
+    error_category: str | None = None,
+    error_count_increment: bool = False,
+    details: dict[str, Any] | None = None,
+    enabled: bool = True,
+) -> None:
+    """Best-effort cache telemetry update; download outcomes remain recorded in the run ledger.
+
+    The app's source_cache_state table is created by Stage 16 migrations. Stand-alone ingestion
+    tests using custom state paths do not mutate the default application database.
+    """
+    if not enabled:
+        return
+    try:
+        from app.services.database import connect_sqlite
+
+        db_path = resolve_database_path()
+        if not db_path.exists():
+            return
+        with connect_sqlite(db_path) as db:
+            table_exists = db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='source_cache_state'"
+            ).fetchone()
+            if not table_exists:
+                return
+            db.execute(
+                """INSERT INTO source_cache_state(
+                    source_id,source_uri,source_version,cache_status,retrieved_at,expires_at,
+                    checksum_sha256,last_attempt_at,last_success_at,last_error_category,error_count,details_json
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(source_id) DO UPDATE SET
+                    source_uri=excluded.source_uri,
+                    source_version=COALESCE(excluded.source_version,source_cache_state.source_version),
+                    cache_status=excluded.cache_status,
+                    retrieved_at=COALESCE(excluded.retrieved_at,source_cache_state.retrieved_at),
+                    expires_at=COALESCE(excluded.expires_at,source_cache_state.expires_at),
+                    checksum_sha256=COALESCE(excluded.checksum_sha256,source_cache_state.checksum_sha256),
+                    last_attempt_at=COALESCE(excluded.last_attempt_at,source_cache_state.last_attempt_at),
+                    last_success_at=COALESCE(excluded.last_success_at,source_cache_state.last_success_at),
+                    last_error_category=excluded.last_error_category,
+                    error_count=source_cache_state.error_count + excluded.error_count,
+                    details_json=excluded.details_json""",
+                (asset.source_id, source_uri, source_version, cache_status, retrieved_at, expires_at,
+                 checksum_sha256, last_attempt_at, last_success_at, error_category,
+                 1 if error_count_increment else 0,
+                 json.dumps(details or {}, ensure_ascii=False, sort_keys=True)),
+            )
+    except (OSError, sqlite3.Error, ValueError):
+        # Cache telemetry must not prevent a valid source download or a core student flow.
+        return
+
+
 def download_asset(
     asset_id: str,
     *,
@@ -143,6 +266,9 @@ def download_asset(
     runs_root: str | Path = RUNS_ROOT,
     timeout_seconds: float = 12.0,
     retries: int = 2,
+    cache_ttl_seconds: int | None = None,
+    force_refresh: bool = False,
+    minimum_interval_seconds: float = 1.0,
     client_factory=httpx.Client,
 ) -> dict[str, Any]:
     """Download one fixed official asset; never accepts arbitrary URLs from callers."""
@@ -152,6 +278,14 @@ def download_asset(
         raise IngestionValidationError("retries must be an integer between 0 and 10.")
     if not isinstance(timeout_seconds, (int, float)) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0 or timeout_seconds > 300:
         raise IngestionValidationError("timeout_seconds must be a finite number greater than 0 and at most 300.")
+    if cache_ttl_seconds is None:
+        cache_ttl_seconds = external_cache_ttl_seconds()
+    if not isinstance(cache_ttl_seconds, int) or isinstance(cache_ttl_seconds, bool) or not 0 <= cache_ttl_seconds <= 31_536_000:
+        raise IngestionValidationError("cache_ttl_seconds must be an integer between 0 and 31536000.")
+    if not isinstance(force_refresh, bool):
+        raise IngestionValidationError("force_refresh must be a boolean.")
+    if not isinstance(minimum_interval_seconds, (int, float)) or isinstance(minimum_interval_seconds, bool) or not math.isfinite(minimum_interval_seconds) or not 0 <= minimum_interval_seconds <= 60:
+        raise IngestionValidationError("minimum_interval_seconds must be between 0 and 60 seconds.")
     asset = ASSETS[asset_id]
     _validate_allowed_url(asset)
     target_dir = Path(raw_root) / asset.source_id / asset.source_version.replace(" ", "_")
@@ -159,6 +293,53 @@ def download_asset(
     target_path = target_dir / asset.filename
     started_at = iso_utc()
     last_error: str | None = None
+
+    cached = _verified_cache_metadata(target_path, asset, cache_ttl_seconds) if not force_refresh else None
+    if cached is not None:
+        metadata, age_seconds = cached
+        completed_at = iso_utc()
+        event = {
+            "source_id": asset.source_id,
+            "asset_id": asset.asset_id,
+            "status": "cache_hit",
+            "started_at": started_at,
+            "finished_at": completed_at,
+            "attempt_number": 0,
+            "source_url": asset.url,
+            "source_version": asset.source_version,
+            "byte_size": target_path.stat().st_size,
+            "sha256": metadata["sha256"],
+            "cache_age_seconds": round(age_seconds, 3),
+            "cache_ttl_seconds": cache_ttl_seconds,
+        }
+        record_run_event(event, state_path=state_path)
+        Path(runs_root).mkdir(parents=True, exist_ok=True)
+        write_json_atomic(Path(runs_root) / f"{asset.asset_id}_latest.json", event)
+        _record_cache_state(
+            asset, cache_status="fresh", source_uri=asset.url, source_version=asset.source_version,
+            retrieved_at=metadata.get("retrieved_at"),
+            expires_at=(datetime.fromisoformat(str(metadata["retrieved_at"]).replace("Z", "+00:00")) + timedelta(seconds=cache_ttl_seconds)).isoformat(),
+            checksum_sha256=metadata["sha256"], last_attempt_at=completed_at,
+            last_success_at=metadata.get("retrieved_at"), details={"asset_id": asset.asset_id, "cache_hit": True},
+            enabled=Path(state_path).resolve() == Path(STATE_PATH).resolve(),
+        )
+        return {**metadata, "cache_status": "fresh_cache_hit", "cache_age_seconds": round(age_seconds, 3)}
+
+    # Enforce a bounded inter-request delay per source using the existing durable run ledger.
+    if minimum_interval_seconds > 0:
+        try:
+            state = json.loads(Path(state_path).read_text(encoding="utf-8")) if Path(state_path).exists() else {}
+            last_attempt = state.get("sources", {}).get(asset.source_id, {}).get("last_attempt", {})
+            finished_text = last_attempt.get("finished_at") if isinstance(last_attempt, dict) else None
+            if finished_text:
+                previous = datetime.fromisoformat(str(finished_text).replace("Z", "+00:00"))
+                elapsed = (datetime.now(UTC) - previous.astimezone(UTC)).total_seconds()
+                remaining = minimum_interval_seconds - elapsed
+                if 0 < remaining <= 60:
+                    time.sleep(remaining)
+        except (OSError, ValueError, TypeError, AttributeError, json.JSONDecodeError):
+            # Invalid prior timing data does not block a refresh; the main run ledger still records it.
+            pass
 
     for attempt_number in range(1, retries + 2):
         temporary_path = target_path.with_suffix(target_path.suffix + ".part")
@@ -239,6 +420,7 @@ def download_asset(
                 "header_validation": "passed",
                 "source_data_is_live": False,
                 "note": "Pinned source file downloaded as a static snapshot; not a live API feed.",
+                "cache_ttl_seconds": cache_ttl_seconds,
             }
             write_json_atomic(str(target_path) + ".metadata.json", metadata)
             event = {
@@ -257,12 +439,25 @@ def download_asset(
             record_run_event(event, state_path=state_path)
             Path(runs_root).mkdir(parents=True, exist_ok=True)
             write_json_atomic(Path(runs_root) / f"{asset.asset_id}_latest.json", event)
+            expires_at = (datetime.fromisoformat(completed_at.replace("Z", "+00:00")) + timedelta(seconds=cache_ttl_seconds)).isoformat()
+            _record_cache_state(
+                asset, cache_status="fresh", source_uri=asset.url, source_version=asset.source_version,
+                retrieved_at=completed_at, expires_at=expires_at, checksum_sha256=checksum,
+                last_attempt_at=completed_at, last_success_at=completed_at,
+                details={"asset_id": asset.asset_id, "byte_size": total_bytes, "header_validation": "passed"},
+                enabled=Path(state_path).resolve() == Path(STATE_PATH).resolve(),
+            )
             return metadata
         except (httpx.HTTPError, OSError, IngestionError) as exc:
             last_error = f"{type(exc).__name__}: {exc}"
             temporary_path.unlink(missing_ok=True)
             if attempt_number <= retries and isinstance(exc, (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError)):
-                time.sleep(min(0.25 * attempt_number, 1.0))
+                retry_after = _retry_after_seconds(exc.response.headers) if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None else None
+                # Never spin against a source that asks for a long delay. Wait for at most three
+                # seconds here; if the server asks for longer, fail safely and preserve old data.
+                if retry_after is not None and retry_after > 3:
+                    break
+                time.sleep(retry_after if retry_after is not None else min(0.25 * attempt_number, 1.0))
                 continue
             break
 
@@ -281,6 +476,20 @@ def download_asset(
     record_run_event(event, state_path=state_path)
     Path(runs_root).mkdir(parents=True, exist_ok=True)
     write_json_atomic(Path(runs_root) / f"{asset.asset_id}_latest.json", event)
+    old_metadata = None
+    try:
+        old_metadata = json.loads(Path(str(target_path) + ".metadata.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        pass
+    _record_cache_state(
+        asset, cache_status="refresh_failed" if target_path.exists() else "unknown",
+        source_uri=asset.url, source_version=asset.source_version,
+        retrieved_at=old_metadata.get("retrieved_at") if isinstance(old_metadata, dict) else None,
+        expires_at=None, checksum_sha256=old_metadata.get("sha256") if isinstance(old_metadata, dict) else None,
+        last_attempt_at=finished_at, error_category="download_failed", error_count_increment=True,
+        details={"asset_id": asset.asset_id, "stale_file_retained": target_path.exists()},
+        enabled=Path(state_path).resolve() == Path(STATE_PATH).resolve(),
+    )
     raise IngestionError(
         f"Could not download {asset.asset_id} after {attempt_number} attempt(s): {event['error']}"
     )

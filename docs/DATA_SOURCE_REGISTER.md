@@ -101,3 +101,8 @@ Cross-source comparison is for triangulation, not voting. Disagreement can refle
 - [x] A small future source subset and permitted access strategy selected.
 - [x] `data/sources_manifest.yaml` updated; no source marked integrated.
 - [ ] Actual external data package download tested from runtime — blocked/unavailable in this session, explicitly tracked; must be retried in a network-enabled development environment before Stage 6 import.
+
+
+## Stage 19 source-contract audit (2026-10-17)
+
+Automated integrity checks verify that the active curated snapshot is explicitly a non-live `curated_extract`, includes exactly 10 unique `(source_id, source_record_id)` records and unique HTTPS record URLs, retains publisher/version/release/geography/access-time/licence/transformation/limitation metadata, and does not embed salary, wage, employment-count, openings or growth-rate numbers. The current nine O*NET OnLine profile extracts and one ESCO software-developer concept were imported to the local graph; the full O*NET Database, full ESCO classification, NCS, NSDC and PLFS remain unintegrated/reference-first. See `docs/VALIDATION_REPORT.md` for the exact checks and caveats. Automated metadata checks do not replace live URL checks, legal licence review, or source refresh.

@@ -44,3 +44,18 @@ Not done yet: M3 (flashcards), M4 (loop and ledger motion), M5 (graph), M6 (road
 
 Flip card front: hypothesis label, category, qualitative confidence. Back: evidence used (or "Not enough evidence yet"), gaps, source record count, next validating action. No percentage fit is shown. The previous full card is still reachable under "Full detail, sources and limitations".
 Not built: the optional draggable deck for 10 to 14 (needs the `motion` package; deferred).
+
+## Stages 16–20 additions
+
+| Surface | Component | Motion | Reduced motion |
+|---|---|---|---|
+| Audit trail (Sources, Home) | `motion/AuditTrailFlow.tsx` | flowing dashes, pulsing node rings | static diagram |
+| Privacy | `motion/PrivacyShield.tsx` | breathing halo, orbiting dots | static shield |
+| Storage / graph status | `motion/SyncPulse.tsx` | ping on healthy status (text always states status) | static dot |
+| Home "Built to be trusted" | `motion/StageRail.tsx` | staggered rise, tilt | no rise, no tilt |
+| Demo page | `components/DemoProfiles.tsx` | staggered cards, line-draw loop diagram | static |
+| Baseline | `components/BaselineAssessment.tsx` | animated progress bar, step dots, tilt result cards | no animation |
+
+**In-app switch:** Sources & privacy → Animation → "Reduce motion". It stores `skillscope_motion=off`, sets `html[data-reduce-motion]`, and `useMotionPreference` / `usePrefersReducedMotion` both honour it in addition to the OS setting.
+
+New routes: `/baseline` (journey step) and `/demo` (header button). The Sources page now hosts the source audit, storage status and privacy controls.

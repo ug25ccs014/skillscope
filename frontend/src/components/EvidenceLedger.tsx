@@ -88,7 +88,7 @@ type ProfileSummary = {
   signals: SignalSummary[];
   limitations: string[];
 };
-type Props = { apiBaseUrl: string };
+type Props = { apiBaseUrl: string; initialAge?: number; initialGoal?: string; initialContext?: string };
 
 const PROFILE_STORAGE_KEY = 'skillscope_student_evidence_profile_v1';
 const evidenceTypeOptions: Array<{ value: EvidenceType; label: string; hint: string }> = [
@@ -168,7 +168,14 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return await response.json() as T;
 }
 
-export default function EvidenceLedger({ apiBaseUrl }: Props) {
+function initialAgeBand(age: number): AgeBand {
+  const safeAge = Number.isFinite(age) && age >= 10 && age <= 100 ? age : 16;
+  if (safeAge <= 14) return '10_14';
+  if (safeAge <= 17) return '15_17';
+  return '18_plus';
+}
+
+export default function EvidenceLedger({ apiBaseUrl, initialAge = 16, initialGoal = '', initialContext = '' }: Props) {
   const [profileId, setProfileId] = useState<string | null>(() => typeof window !== 'undefined' ? window.localStorage.getItem(PROFILE_STORAGE_KEY) : null);
 
   useEffect(() => {
@@ -188,9 +195,10 @@ export default function EvidenceLedger({ apiBaseUrl }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [createAgeBand, setCreateAgeBand] = useState<AgeBand>('18_plus');
-  const [createGoal, setCreateGoal] = useState('');
-  const [createContext, setCreateContext] = useState('');
+  const [createAgeBand, setCreateAgeBand] = useState<AgeBand>(() => initialAgeBand(initialAge));
+  const [createGoal, setCreateGoal] = useState(initialGoal);
+  const [createContext, setCreateContext] = useState(initialContext);
+  const [creationTouched, setCreationTouched] = useState(false);
   const [createConsent, setCreateConsent] = useState(false);
 
   const [editAgeBand, setEditAgeBand] = useState<AgeBand>('18_plus');
@@ -410,17 +418,27 @@ export default function EvidenceLedger({ apiBaseUrl }: Props) {
     finally { setInitializing(false); }
   };
 
+  useEffect(() => {
+    if (!profileId && !creationTouched) {
+      setCreateAgeBand(initialAgeBand(initialAge));
+      setCreateGoal(initialGoal);
+      setCreateContext(initialContext);
+      setCreateConsent(false);
+    }
+  }, [initialAge, initialGoal, initialContext, profileId, creationTouched]);
+
   return (
-    <section id="evidence-ledger" className="border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="evidence-ledger-heading">
+    <section id="evidence-ledger" className="ss-section scroll-mt-28 border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="evidence-ledger-heading">
       <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Your profile</p>
+          <p className="ss-section-kicker text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Your profile</p>
           <h1 id="evidence-ledger-heading" className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Build your profile from what you try.</h1>
           <p className="mt-4 text-sm leading-7 text-slate-600">Add things you have tried and what you noticed. You can edit or delete anything.</p>
-          <p className="mt-5 inline-block rounded-full bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-900">Use demo information only. No real names or school details.</p>
+          <div className="mt-5 rounded-2xl border border-teal-100 bg-teal-50/70 p-4"><p className="text-sm font-semibold text-teal-950">Unknown is not zero.</p><p className="mt-1 text-sm leading-6 text-teal-900/80">A hard task may reflect the task, tiredness, unfamiliarity or context. SkillScope does not turn one result into a fixed ability or a career label.</p></div>
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-950"><p className="font-bold">Prototype privacy boundary</p><p className="mt-1">The consent checkbox is a recorded self-attestation, not identity or guardian verification. Profile IDs are locators, not authentication. Use demo information only: no real names, school details or children's data. Production use needs verified identity, authorization, security and retention controls.</p></div>
         </div>
 
-        <div className="min-w-0 space-y-5">
+        <div id="profile-settings" className="scroll-mt-28 min-w-0 space-y-5">
           {error ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800" role="alert">{error}</div> : null}
           {success ? <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800" role="status">{success}</div> : null}
 
@@ -430,22 +448,32 @@ export default function EvidenceLedger({ apiBaseUrl }: Props) {
             <form onSubmit={submitProfile} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Create your profile</p>
               <h3 className="mt-2 text-xl font-semibold text-ink">Get started</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">No name or school needed.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">No name, date of birth or school needed. This stores only what you choose to enter.</p>
+              <aside role="note" aria-labelledby="privacy-safety-notice-heading" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+                <h4 id="privacy-safety-notice-heading" className="font-bold">Prototype privacy and safety notice — demo data only</h4>
+                <p id="privacy-safety-notice-copy" className="mt-1">Do not enter real student or child data, names, contact details, government identifiers, or sensitive personal information (including health, disability, religion, caste, sexuality, or political views). Use synthetic examples only.</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>SkillScope stores the age band, optional goal/context, and the activities, reflections, preferences, and plans you choose to save in the configured local database. The browser stores a profile locator.</li>
+                  <li>You can review and correct your profile or evidence and permanently delete an evidence item, all evidence, or the profile using the controls below.</li>
+                  <li>SkillScope does not scrape social media, monitor other apps, or send personal data to an external LLM in this prototype. A project link is only stored as a user-provided reference.</li>
+                  <li>For anyone under 18, this is only a demo consent declaration. Guardian identity and legal consent are not independently verified. Do not use real children's data.</li>
+                </ul>
+              </aside>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className={labelClass}>Age band
-                  <select className={fieldClass} value={createAgeBand} onChange={(event) => { setCreateAgeBand(event.target.value as AgeBand); setCreateConsent(false); }}>
+                  <select className={fieldClass} value={createAgeBand} onChange={(event) => { setCreationTouched(true); setCreateAgeBand(event.target.value as AgeBand); setCreateConsent(false); }}>
                     <option value="10_14">10–14</option><option value="15_17">15–17</option><option value="18_plus">18+</option>
                   </select>
                 </label>
                 <label className={labelClass}>Current goal (optional)
-                  <input className={fieldClass} maxLength={500} value={createGoal} onChange={(event) => setCreateGoal(event.target.value)} placeholder="A direction you'd like to explore" />
+                  <input className={fieldClass} maxLength={500} value={createGoal} onChange={(event) => { setCreationTouched(true); setCreateGoal(event.target.value); }} placeholder="A direction you'd like to explore" />
                 </label>
               </div>
               <label className={`${labelClass} mt-4`}>Self-reported context (optional)
-                <textarea className={fieldClass} rows={3} maxLength={1500} value={createContext} onChange={(event) => setCreateContext(event.target.value)} placeholder="Prior activities, access or experience—avoid identifying details." />
+                <textarea className={fieldClass} rows={3} maxLength={1500} value={createContext} onChange={(event) => { setCreationTouched(true); setCreateContext(event.target.value); }} placeholder="Prior activities, access or experience—avoid identifying details." />
               </label>
               <label className="mt-5 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm leading-6 text-slate-700">
-                <input type="checkbox" checked={createConsent} onChange={(event) => setCreateConsent(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-teal-700" required />
+                <input type="checkbox" checked={createConsent} onChange={(event) => setCreateConsent(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-teal-700" aria-describedby="privacy-safety-notice-copy" required />
                 <span>{createAgeBand === '18_plus' ? 'I consent to storing this profile and evidence I choose to add.' : 'I confirm that appropriate guardian consent has been obtained for storing this student profile and its evidence.'}</span>
               </label>
               <button className={`${buttonClass} mt-5 w-full bg-ink text-white hover:border-ink hover:text-white`} disabled={busy || !createConsent}>{busy ? 'Creating profile…' : 'Create evidence profile'}</button>
@@ -505,7 +533,9 @@ export default function EvidenceLedger({ apiBaseUrl }: Props) {
                 </div>
               </div>
 
-              <form onSubmit={submitEvidence} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-teal-100 bg-teal-50/60 p-4"><div><p className="text-sm font-semibold text-teal-950">Profile ready</p><p className="mt-1 text-xs leading-5 text-teal-900/80">Start your baseline now, or add a prior project or activity first.</p></div><a href="#/baseline" className="inline-flex items-center rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-teal-500/20">Continue to baseline</a></div>
+
+              <form onSubmit={submitEvidence} className="ss-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-teal-700">Add contextual evidence</p>
                 <h3 className="mt-2 text-xl font-semibold text-ink">What did you observe—or what did you report?</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-500">Choose one main evidence type. The ledger does not automatically interpret the meaning for you.</p>

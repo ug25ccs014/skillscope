@@ -2,7 +2,8 @@
 from __future__ import annotations
 from enum import Enum
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from app.schemas.privacy_validation import validate_user_text
 from app.schemas.student_evidence import AgeBand, UserInterpretation
 
 VERSION = "challenge-library-v1.0"
@@ -81,12 +82,24 @@ class Challenge(BaseModel):
 
 class RubricObservationInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("observation", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
+
     criterion_id: str
     score: int | None = Field(default=None, ge=0, le=5)
     observation: str = Field(min_length=1, max_length=500)
 
 class ChallengeSubmission(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("output", "reflection", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
+
     profile_id: UUID
     output: str = Field(min_length=1, max_length=5000)
     rubric_observations: list[RubricObservationInput] = Field(min_length=1, max_length=8)

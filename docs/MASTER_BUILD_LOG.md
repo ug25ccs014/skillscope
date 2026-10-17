@@ -462,67 +462,157 @@ Implemented `baseline-exploratory-v1.0`: age-aware nine-domain baseline, meaning
 **Stage 13 exit assessment:** plans contain actionable steps, expected outcomes, available evidence/source references, prerequisite/source caveats, and an explicit route for editing goals and recalculating. Stage 13 is complete within the documented prototype scope. Stage 14 has not started and awaits explicit user approval.
 
 
-## Stage 15 checkpoint (part 1: motion graphics) — 2026-10-17
+## Stage 14 — User journeys, navigation, and information architecture
 
-**Objective:** Begin the Stage 15 frontend/visual work with motion graphics driven by real plan, recommendation and calibration data. Stage 14 (formal navigation/IA and journey states) has NOT been done yet and is still required.
+**Status:** Implemented and contract-tested within prototype scope.
+
+**Objective:** Connect the calibration preview, consented profile, baseline assessment, evidence ledger, daily challenge, recommendation comparison, pathway plan, provenance review, and profile settings into a coherent user journey with explicit first-time and failure states.
+
+**Files added/changed:**
+- `frontend/src/components/JourneyNavigation.tsx` — responsive sticky section navigation with an active-section indicator and real section anchors.
+- `frontend/src/components/BaselineAssessment.tsx` — user-facing baseline lifecycle: start, one-item-at-a-time response, back/skip, submission, domain-level result, error/retry and next-step navigation.
+- `frontend/src/App.tsx` — mounts the navigation/baseline journey and adds calibration-to-profile transition; removes overflow clipping that would interfere with a sticky header.
+- `frontend/src/components/EvidenceLedger.tsx` — stable profile/settings navigation target and an explicit post-profile continuation to baseline; consent/privacy explanation remains adjacent to profile creation.
+- `frontend/src/components/DiscoveryLoop.tsx`, `CareerRecommendations.tsx`, `PathwayPlanner.tsx` — primary next-step transitions; explicit mixed-evidence state in recommendation UI.
+- `data/user_journey_contract.json` — machine-readable surface, transition, state and safety contract.
+- `docs/USER_JOURNEYS.md` — journey, state handling, navigation architecture, known limitations and exit assessment.
+- `backend/tests/test_user_journey_contract.py` — automated contract checks for real component ownership, navigation targets, transition graph, state inventory and safety invariants.
+
+**Checks run:**
+- `PYTHONPATH=backend pytest -q` — **167 passed** (full backend regression suite).
+- `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed.
+- `data/user_journey_contract.json` validation and Stage 14 contract tests — passed.
+- Global TypeScript `transpileModule` syntax checks for `App.tsx`, `main.tsx`, `JourneyNavigation.tsx`, `BaselineAssessment.tsx`, `EvidenceLedger.tsx`, `DiscoveryLoop.tsx`, `CareerRecommendations.tsx`, and `PathwayPlanner.tsx` — passed for all eight implementation files. Syntax transpilation is not a typecheck.
+- Archive integrity/content audit — passed; release archive includes source, journey contract, tests and documentation while excluding generated databases, caches, installed dependencies, build output, Git metadata and nested archives.
+- Dependency-backed `tsc -b`, Vite production build, and browser-level interaction automation remain unverified because npm dependencies are unavailable in this environment.
+
+**Behavior / safety:**
+- Calibration remains a stateless preview and makes no profile until the user explicitly continues and confirms age-appropriate consent in the evidence ledger.
+- The baseline is real UI over the existing API, uses the age band of the consented profile, supports back/skip, and visibly treats skipped domains as unknown.
+- The navigation uses stable IDs, a scrollable layout on narrow screens, keyboard focus indicators, `aria-current` and a screen-reader current-section announcement.
+- Graph and recommendation failures remain visible, retryable where implemented, and are not interpreted as evidence about the student.
+- Conflicting student-labelled evidence triggers an explicit mixed-evidence notice and links to another validation activity; the app does not silently overwrite a hypothesis.
+- The existing settings target is available even before a profile is created, allowing a first-time user to find the consent/privacy explanation.
+
+**Limitations:** The baseline current answers are kept in component memory until submission; refreshing the browser abandons the in-progress UI draft, though the student can issue a fresh baseline. Guardian consent is still a self-attestation and the API has no authentication/authorization. The full external career datasets remain unavailable. No browser-level end-to-end run or production frontend build is claimed.
+
+**Stage 14 exit assessment:** The required primary surfaces now have navigation targets; the baseline can be started and submitted by a normal user; profile creation and consent gate persistence; direct next-step links connect calibration → profile → baseline → challenge → career hypotheses → pathway plan → source records; settings/correction/deletion are navigable without developer tools. Stage 14 is complete within prototype scope. Stage 15 has not started and awaits explicit user approval.
+
+
+## Stage 15 — Frontend implementation and visual design
+
+**Status:** Implemented within source/design-contract scope; rendered browser audit remains unverified due missing frontend dependencies.
 
 **Implemented:**
-- Fixed a runtime bug in `PathwayPlanner.tsx`: an effect referenced `loadPlan` before it was declared (temporal dead zone), which would throw on first render. The effect now sits after `loadPlan`.
-- Added `frontend/src/motion/` with `RoadmapBus`, `ConfidenceGauge`, `ModeCompass`, `RevealOnScroll` and `usePrefersReducedMotion`; added keyframes to `index.css`; documented in `docs/FRONTEND_MOTION.md`.
-- Wired: RoadmapBus into `PathwayPlanner` (above ordered steps), ConfidenceGauge into `CareerRecommendations`, ModeCompass into the calibration result, RevealOnScroll around the four main sections. Header label updated from "Stage 11" to "Prototype · Stage 15 UI".
+- Shared visual tokens and classes in `frontend/src/index.css` for canvas, surfaces, dividers, section kickers, panels, focus outlines, mobile form controls, and reduced-motion behavior.
+- Balanced headings and overflow-safe wrapping for long student-provided/source text.
+- Consistent vertical section rhythm and anchored scroll offsets. The Baseline and Pathway Planner no longer add redundant inner max-width and horizontal padding, aligning their contents with the other primary sections.
+- Accessible darkening of small `text-slate-400` metadata text on light surfaces; source-checked WCAG contrast tests cover primary text, teal actions, indigo accents, focus ring and muted metadata.
+- Shared panel treatment on major profile, challenge, recommendations, and plan surfaces without synthetic charts or misleading live-data graphics.
+- Added `docs/VISUAL_DESIGN_SYSTEM.md`, `docs/STAGE15_VISUAL_AUDIT.md`, and `tests/test_stage15_visual_contract.py`.
+- Full regression exposed drift in `data/sources_manifest.yaml`: version 2 omitted curated snapshot source IDs already required by importer and tests. Updated manifest to version 3 and added explicit `onet_online_curated_sample` and `esco_curated_sample` entries, with integration status limited to curated extracts. This fix preserves the guard against falsely claiming that full source datasets are integrated.
 
-**Checks run:** TypeScript transpile syntax diagnostics passed for all 11 frontend files touched or present in `src/`. Server-side render smoke test passed for RoadmapBus (5 stops, 1 stop, 0 stops), ConfidenceGauge and ModeCompass. **Not run:** dependency-backed `tsc`, Vite build, any browser test, and backend tests (backend was not modified; last recorded result was 161 passed). npm registry access failed in this environment.
+**Checks run:**
+- `PYTHONPATH=backend pytest -q` — **167 passed** (includes Stage 15 visual/design source-contract and contrast checks).
+- `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed.
+- TypeScript global `transpileModule` syntax checks — all frontend implementation `.tsx` files passed; no dependency-backed typecheck is claimed.
+- CSS parsing using PostCSS — passed.
+- YAML source manifest parse and curated-snapshot source-ID consistency — passed.
+- Archive integrity and package contents verified; generated SQLite database, `.git`, caches, installed dependencies, build outputs, and nested ZIPs excluded.
 
-**Limitations:** Animation timing is unverified in a real browser. Stage 14 deliverables and the remaining Stage 15 surfaces (source/privacy status panel, mobile/desktop overflow audit) are not done.
+**Limitations:** `tsc -b`, `vite build`, and browser-level desktop/mobile screenshots/interactions were not run because frontend dependencies are not installed and npm cache/network access is unavailable. The static responsive-contract audit is not a substitute for rendered browser review. Authentication/authorization and verified consent remain production blockers for real student/minor data.
+
+**Stage 15 exit assessment:** The shared visual system, responsive source classes, navigation anchors, keyboard focus and reduced-motion rules, primary surface inventory, privacy controls, and non-misleading data states are implemented and source-audited. Stage 15 is complete within this documented prototype scope; browser rendering/build checks remain unverified. Stage 16 awaits approval.
 
 
-## Stage 14 + Stage 15 (part 2) checkpoint — 2026-10-17
+## Stage 16 — Backend, persistence, APIs, and integrations
 
-**Objective:** Replace the single long scrolling page with a real multi-page site (navigation, page structure, journey continuity), remove internal stage labels from the UI, and add a Home page.
+**Status:** Complete within the documented local SQLite prototype scope.
 
 **Implemented:**
-- Split the 797-line `App.tsx` into `router.ts`, `layout/SiteLayout.tsx`, `shared/api.ts`, `shared/content.ts` and `pages/` (Home, Start, Profile, Challenges, Careers, Plan, Sources & privacy). `App.tsx` is now a small router shell.
-- Added sticky header with mobile menu, backend status pill and offline banner, skip link, footer, page-change focus/title handling, 404 page, and "Continue" cards between pages.
-- Added a Sources & privacy page (cited knowledge graph plus a plain-language privacy section reflecting actual behaviour).
-- Removed all "Stage N" labels from user-facing text; each page now has a single `h1`.
-- Fixed two build-breaking issues that `noUnusedParameters` would have flagged (unused `index` in `CareerRecommendations.tsx`; leftover references during the split).
-- Added `docs/SITE_MAP.md` and a Windows Command Prompt run guide in `README.md`.
+- Centralized environment-backed database configuration in `backend/app/config.py`; relative SQLite URLs resolve from the project root, in-memory and non-SQLite URLs fail explicitly, and `.env.example` contains example values only.
+- Added `backend/app/services/database.py` for shared SQLite connections, foreign-key enforcement, busy timeout/WAL setup, checksum-tracked additive schema migrations, a reproducible `init`/`status` CLI, idempotent demo seeding and non-sensitive persistence status. Development can auto-seed one clearly synthetic demo profile and challenge/evidence trail; production defaults to no demo seed.
+- Added persistent `student_preferences` with GET/PUT API, and persisted recommendation snapshots/history with algorithm version, evidence count, source keys and serialized response. Recommendation persistence refuses unresolvable source-record identities and verifies that referenced student evidence belongs to the requested profile.
+- Added request IDs and safe generic API error bodies for persistence and unexpected server errors; internal exception details remain in logs.
+- Hardened official-source downloads with a checksum/header/time/version-verified TTL cache, forced refresh, source-level minimum request interval, bounded retries and `Retry-After` handling. Failed refreshes keep the last known file/sidecar intact and report failure explicitly rather than overwriting good data. Where the configured run ledger and migrated app database are used, cache telemetry updates `source_cache_state` best-effort.
+- Added `docs/STAGE16_PERSISTENCE_AND_INTEGRATIONS.md` and `backend/tests/test_stage16_persistence.py`; added downloader tests for cache hits, cache corruption refresh, failed-refresh preservation, retry delay and persisted cache status. Existing recommendation tests now cover durable snapshot history.
 
-**Checks run:** syntax check passed for all 20 TS/TSX files; a semantic scan for unused/undefined identifiers reported 0 issues; every route (plus an unknown route) server-rendered without error and with no stage labels. **Not run:** `npm install`, full `tsc`, Vite build, browser/mobile testing, backend tests (backend unchanged; last recorded 161 passed).
+**Checks run:**
+- `PYTHONPATH=backend pytest -q` — **184 passed** (includes safe-error/request-ID endpoint checks in addition to persistence and source-cache tests).
+- `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed.
+- `PYTHONPATH=backend python -m app.services.database init --db <temporary-file> --no-demo` followed by `status` — passed; migration version 2 and persistent store reported correctly without a demo fixture.
+- JSON contracts and YAML source manifest parsed successfully.
+- ZIP integrity and required-content checks passed; generated SQLite database, `.git`, caches, installed dependencies, build outputs, raw downloads and nested archives are excluded.
 
-**Stage 14 exit assessment:** navigation, journey continuity and the empty/offline/unknown-route states are implemented in code. The "complete the journey without dead ends" gate is not yet confirmed in a running browser.
+**Limitations:** Only file-backed SQLite is supported. Full O*NET/ESCO and Indian NCS/NSDC datasets are not integrated; all external sources remain static snapshots/reference-first. Failed refreshes preserve the previous file while setting failure status; consumers must inspect cache freshness before use. The frontend dependency-backed TypeScript typecheck and Vite production build remain unverified because npm packages cannot be installed in the environment. Authentication, server-side authorization, verified guardian consent, data export/retention policies, managed backups, deployment security and a production privacy/security audit remain blockers for real student/minor data.
+
+**Stage 16 exit assessment:** The synthetic demo's saved challenge/evidence trail persists across repeat initialization, preferences survive repository recreation, recommendation snapshots retain algorithm/source metadata, schema bootstrap is repeatable, API errors do not expose raw details, and external-source cache/retry failure cases are tested. Stage 16 is complete within the stated prototype scope. Stage 17 has not started and awaits explicit approval.
 
 
-## Motion stages M0 + M1 + M2 checkpoint, with dead-page fixes — 2026-10-17
+## Stage 17 — Explainability and source validation UI
 
-**Objective:** Add the motion foundation (M0), the constellation hero (M1) and the tilting mode cards (M2) from `SkillScope_AI___Motion___3D_Frontend_Prompt.md`; make the site less text-heavy; remove dead ends.
+**Status:** Complete within the documented prototype scope.
 
-**Files changed or added (frontend only; backend untouched):**
-- New in `src/motion/`: `useMotionPreference.ts`, `SmoothScrollProvider.tsx`, `gsapSetup.ts`, `LazyCanvas.tsx`, `constellationData.ts`, `ConstellationCanvas.tsx`, `ConstellationSvg.tsx`, `ConstellationHero.tsx`, `GradientBackdrop.tsx`, `ModeContext.tsx`, `modeConfig.ts`, `TiltCard.tsx`, `ModeCards.tsx`.
-- New: `src/layout/JourneyStrip.tsx`.
-- Changed: `package.json`, `tailwind.config.js`, `src/main.tsx`, `src/index.css`, `src/layout/SiteLayout.tsx`, `src/pages/HomePage.tsx`, `src/pages/StartPage.tsx` (mode cards tilt and follow the entered age; form logic unchanged), `src/pages/PageParts.tsx`, `src/pages/FlowPages.tsx`.
-- Docs: `DECISIONS.md`, `FRONTEND_MOTION.md`, this log.
+**Implemented:**
+- Added a read-only `GET /api/source-registry` endpoint and `SourceRegistry` interface showing source publisher, official/supporting links, version/release, geography, licence/terms status, known limitations, truthful `live`/`cached`/`curated`/`link_only`/`unavailable` status, last successful app-side sync separately from last review, attempt status, checksum and active snapshot ID where present.
+- Surfaced source/canonical records explicitly marked conflicted and kept non-exact/unresolved taxonomy mappings in a distinct uncertainty panel. An empty list is not described as proof that sources agree.
+- Fixed graph audit metadata decoding: the graph repository stores JSON-encoded values, so the source registry now decodes `built_at`, `active_snapshots`, versions and limitations before reporting. It uses the graph builder’s successful active-snapshot selection logic to compare currently active versus graph-built snapshots and marks stale graphs explicitly.
+- Added expandable recommendation audit trace from distinct relevant student observations and recency → local heuristic rules linked to evidence → externally sourced occupational work facts with record URLs/version/geography → evidence gaps and next validating task. Counts are computed over all relevant distinct evidence even when detail display is bounded.
+- Added `backend/tests/test_stage17_source_registry.py`, `backend/tests/test_stage17_ui_contract.py`, and a recommendation test for distinct observation count/recency. Added `docs/STAGE17_EXPLAINABILITY_SOURCE_AUDIT.md`.
 
-**Dead pages fixed:** Careers and Plan showed only a small text notice when no profile existed, and the Home call to action led straight to Careers. Both now show an illustrated empty state with three working next steps (create profile, try a challenge, find starting path).
+**Checks run:** `PYTHONPATH=backend pytest -q` — **196 passed**; `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed; JSON/YAML manifest contract and frontend TSX syntax checks passed; graph status smoke test reports 109 nodes/109 edges, two active curated snapshots, and `is_stale: false`; ZIP integrity and contents verified.
 
-**Packages added:** lenis, gsap, @gsap/react, three, @react-three/fiber, @types/three, @fontsource-variable/inter, @fontsource-variable/fraunces (version ranges only; see Decisions M-1 to M-3 in DECISIONS.md).
+**Limitations:** external conflict discovery is limited to records explicitly marked conflicted in the local provenance store; the curated source graph contains only ten occupation identities and no live source feed is claimed. Full frontend typecheck/Vite production build and browser E2E checks remain unverified because npm dependencies were unavailable. API authentication/authorization and verified guardian consent remain production blockers.
 
-**Checks actually run:** TypeScript transpile syntax diagnostics: 34 files, 0 errors. Unused-import scan on the new and changed files: 0 findings.
-**Not run (no npm registry access in the build environment):** `npm install`, `npm run typecheck`, `npm run build`, any browser test, WebGL rendering, 360/768/1440 px layout check, reduced-motion pass, WebGL-off pass, Lighthouse, axe, bundle sizes, backend tests (backend unchanged; last recorded 161 passed). **No performance numbers exist yet.**
+**Stage 17 exit assessment:** A reviewer can trace a recommendation through student evidence, local matching logic and cited occupational source facts, and can inspect source sync status, source-record conflicts, uncertain mappings and graph snapshot freshness. Stage 17 is complete within the documented prototype scope. Stage 18 has not started and awaits explicit approval.
 
-**Exit gates M0 to M2:** not confirmed. Each needs the commands above run on a machine with npm access. Skipped on purpose: ShaderGradient, drei, Motion (see Decision M-3).
 
-**Next:** M3 (flashcard scroll sections and flip cards) after approval.
+## Stage 18 — Privacy, security, fairness, accessibility, and child safety
 
-## Motion stage M3 checkpoint — 2026-10-17
+**Status:** Complete within demo-only hackathon prototype scope.
 
-**Objective:** Pinned "How it works" card stack on Home and flip cards for career recommendations.
-**Files:** new `src/motion/FlipCard.tsx`, `src/motion/FlashStack.tsx`; changed `src/components/CareerRecommendations.tsx` (summary flip card above the unchanged detail, now inside a collapsible), `src/pages/HomePage.tsx`, `src/index.css`, `docs/FRONTEND_MOTION.md`, this log. No new packages. Backend untouched.
-**Checks run:** TypeScript transpile syntax diagnostics, 36 files, 0 errors.
-**Not run:** `npm install`, typecheck, build, browser, keyboard walk-through, screen-reader check, layout at 360/768/1440 px. M0 to M2 results were also never reported back, so earlier gates remain unconfirmed.
-**Skipped:** optional draggable deck for 10 to 14.
-**Exit gate M3:** not confirmed (needs a keyboard-only flip test and a real recommendations response).
+**Implemented:**
+- Added `docs/PRIVACY_AND_SAFETY.md` with data inventory/minimization, purpose limitation, sensitive-inference prohibitions, minor-consent boundaries, user review/correction/deletion, fairness/accessibility checklist, implemented controls, and mandatory production release gates.
+- Added `backend/app/schemas/privacy_validation.py` to reject obvious email/phone/long-number identifiers in selected free-text fields, including recursively nested context. The rejection is deliberately narrow and does not claim comprehensive sensitive-data detection.
+- Added validators for profile/goals, evidence and rubric text, calibration, baseline answers, challenge outputs/reflections and pathway input context. Validation errors do not echo entered values.
+- Hardened `backend/app/main.py`: request IDs, safe validation errors, route-template and exception-type-only logging, `nosniff`/frame/referrer/permissions/content-security headers, private response no-store behavior, exact HTTPS-only configured CORS in production, and a fail-closed 503 guard for student-data routes in production until authentication, per-profile authorization and verified consent exist.
+- Added a prominent demo-only privacy notice to profile creation, including no-real-student/child-data guidance, correction/deletion explanation and explicit guardian self-attestation limitation. Added tests for consent, deletion cascades, input handling/no-echo, production route/CORS gates, response headers, log redaction and accessible journey contracts.
 
-**Fix after first real `npm run typecheck` (2026-10-17):** `motion/modeTheme.ts` collided with `motion/ModeTheme.tsx` on Windows (case-insensitive file names, TS1149). Renamed to `motion/modeConfig.ts` and updated imports. `tsconfig.node.json` had `allowImportingTsExtensions` without `noEmit` (TS5096, present before the motion work); the option was removed because `vite.config.ts` does not need it.
+**Checks run:** `PYTHONPATH=backend pytest -q backend/tests tests` — **217 passed**; Python compilation passed; JSON/YAML and TSX syntax/CSS checks passed where available.
 
-**Second fix (2026-10-17):** the old `modeTheme.ts` was still on disk, so `./ModeTheme` kept resolving to it. `ModeTheme.tsx` is now `ModeContext.tsx`, so no import depends on letter case. A leftover `modeTheme.ts` is unused and may be deleted.
+**Limitations:** no actual authentication, ownership/authorization, independently verified guardian authority, comprehensive DLP, or legal compliance review against current Indian DPDP rules is in place. Avoid real student/minor data and public deployment. Full dependency-backed frontend typecheck/build and browser/screen-reader testing remain unverified because npm dependencies were unavailable.
+
+**Stage 18 exit assessment:** written privacy/safety checklist and automated consent/deletion/input/accessibility tests are complete. Production release gates remain open by design. Stage 19 has not started and awaits explicit user approval.
+
+
+## Stage 19 — Functional, data, and recommendation validation
+
+**Status:** Complete within automated demo-validation scope.
+
+**Implemented/validated:** Added deterministic scenario coverage for broad age-10 exploration with no evidence; age-16 software goal with low evidence and non-coding alternative; design/communication evidence beside a software goal; adult portfolio-based actionable gap analysis; adult unclear/conflicted evidence leading back to discovery; operation without LLM keys/live network; stale or source-less credentials not being asserted as current prerequisites; evidence correction/deletion and historical recommendation snapshots; independent performance/enjoyment signals; and current-goal changes with retained goal history. Data tests validate curated snapshot record count, non-duplicate source identities/URLs, required provenance and links, manifest source states, ten authored domain mappings, and non-exact cross-taxonomy semantics. Added `docs/VALIDATION_REPORT.md` with scenario matrix, data quality results, unverified checks, and a future consent-based pilot plan.
+
+**Checks run:** `PYTHONPATH=backend pytest -q backend/tests tests` — **234 passed**; `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed; 16 JSON files and `data/sources_manifest.yaml` parsed successfully. Data record count assertions verify 10 curated records (9 O*NET OnLine extracts, 1 ESCO concept).
+
+**Limits:** These tests establish expected behavior for code and curated data contracts, not psychometric validity, predictive validity, fairness in deployment, source availability at the current remote URL, or career outcomes.
+
+**Stage 19 exit assessment:** All ten specified functional/data/recommendation scenarios are represented by automated tests. Stage 20 follows below.
+
+## Stage 20 — Demo hardening, documentation, and handoff
+
+**Status:** Complete within documented environment and hackathon prototype limits.
+
+**Implemented:** Reproducible idempotent synthetic fixtures for 10–14, 15–17 and 18+; `scripts/demo_walkthrough.py` for a local-only live HTTP challenge submission and evidence/next-step assertion; `docs/ARCHITECTURE.md` Mermaid component/data-flow diagram; `docs/JUDGING_DEMO_SCRIPT.md`; updated README startup, source import/rebuild, demo, troubleshooting and release-boundary instructions; `docs/PROJECT_STATUS.md`; and this final validation/build record. The existing `docs/PRODUCT_CONTRACT.md`, `docs/DATA_SOURCE_REGISTER.md`, `docs/DECISIONS.md`, and `docs/PRIVACY_AND_SAFETY.md` remain the governing product/source/decision/safety references.
+
+**Fresh smoke test:** Using a new isolated SQLite path: migrations 1–2 applied; three fixtures seeded; curated import returned 10 records/32 career facts with `runtime_fetch_performed: false`; graph rebuild produced 109 nodes/109 edges, active snapshots matched, `is_stale: false`, `source_data_is_live: false`. A local Uvicorn server was exercised by `python scripts/demo_walkthrough.py --base-url http://127.0.0.1:8765`. The script passed: age-15–17 challenge evidence count rose from 3 to 4, submissions rose by one, and the next task changed to `data-story` with an explicit reason.
+
+**Checks not run / blocked:** An actual `npm run build` attempt failed because `react`, `vite` and `@vitejs/plugin-react` are absent from `frontend/node_modules`. It also exposed an invalid `allowImportingTsExtensions` configuration in the referenced node project; `frontend/tsconfig.node.json` was corrected to compile into `node_modules/.tmp` without that option. Dependency-backed build, browser E2E/responsive screenshots, and screen-reader testing are not claimed as passing. Available TSX syntax transpilation/CSS parsing are source-level checks only. No production identity/access-control/verified guardian-consent implementation or legal/security certification was attempted.
+
+**Stage 20 exit assessment:** A new developer has exact setup/demo/ingestion commands, an architecture overview, a judging script, a validation report, synthetic fixtures and an executable demo smoke walkthrough. Stages 19–20 are closed for this hackathon prototype; the remaining production and evaluation gates are explicit.
+
+## Merge: themed frontend (Stages 1–15) + Stage 16–20 package
+
+- **Objective:** combine the Stage 20 backend/docs/tests with the themed motion frontend and theme the Stage 16–20 surfaces.
+- **Changed:** backend/data/docs/scripts/tests replaced by the Stage 20 versions; themed components updated (CareerRecommendations audit trail, EvidenceLedger privacy notice/consent, DiscoveryLoop links); new BaselineAssessment, SourceRegistry, PersistencePanel, PrivacyControls, DemoProfiles; new motion components; routes `/baseline`, `/demo`.
+- **Checks run:** frontend `tsc -b` passed; 13 static frontend contract tests passed (rewritten for the multi-page layout); backend files compile.
+- **Not run:** backend pytest suite (dependencies unavailable in the merge environment), `vite build`, browser/mobile rendering, screen-reader testing. Run `pytest`, `npm run build` locally before relying on this.
+- **Risks:** `PathwayPlanner` was not changed in the merge; the themed `data/skillscope.db` was not carried over (the database is recreated and demo fixtures seeded on startup).

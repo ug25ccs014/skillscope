@@ -138,10 +138,8 @@ class KnowledgeGraphRepository:
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
-        db = sqlite3.connect(self.db_path)
-        db.row_factory = sqlite3.Row
-        db.execute("PRAGMA foreign_keys = ON")
-        return db
+        from app.services.database import connect_sqlite
+        return connect_sqlite(self.db_path)
 
     def _initialize(self) -> None:
         with self._connect() as db:

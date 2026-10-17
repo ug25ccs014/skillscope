@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiBaseUrl } from '../shared/api';
 import { toHref } from '../router';
+import SourceRegistry from '../components/SourceRegistry';
+import PersistencePanel from '../components/PersistencePanel';
+import PrivacyControls from '../components/PrivacyControls';
+import AuditTrailFlow from '../motion/AuditTrailFlow';
+import RevealOnScroll from '../motion/RevealOnScroll';
+import PrivacyShield from '../motion/PrivacyShield';
 
 type GraphSourceReference = {
   source_id: string;
@@ -80,6 +86,15 @@ type CollectionResponse<T> = {
 };
 
 
+const jumps: Array<[string, string]> = [['source-registry', 'Source audit'], ['career-knowledge', 'Career graph'], ['storage', 'Saved data'], ['privacy', 'Privacy'], ['privacy-controls', 'Your controls']];
+function jumpTo(id: string) {
+  const node = document.getElementById(id);
+  if (!node) return;
+  node.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  node.setAttribute('tabindex', '-1');
+  node.focus({ preventScroll: true });
+}
+
 export default function SourcesPage() {
   const [careerCards, setCareerCards] = useState<CareerCard[]>([]);
   const [graphCrosswalks, setGraphCrosswalks] = useState<GraphEdge[]>([]);
@@ -144,11 +159,27 @@ export default function SourcesPage() {
 
   return (
     <div className="page-body">
+      <section className="pb-6 pt-10 lg:pt-14" aria-labelledby="sources-hero-heading">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div className="max-w-3xl">
+            <p className="ss-section-kicker text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Sources, privacy &amp; settings</p>
+            <h1 id="sources-hero-heading" className="mt-2 font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">Check every claim. Keep control of your data.</h1>
+            <p className="mt-4 text-base leading-7 text-slate-600">Each suggestion can be traced from what you did, through the rules that matched it, to the career sources behind it. Local inference and sourced facts are always kept apart.</p>
+            <nav aria-label="On this page" className="mt-6 flex flex-wrap gap-2">
+              {jumps.map(([id, label]) => <button key={id} type="button" onClick={() => jumpTo(id)} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:text-teal-800 focus:outline-none focus:ring-4 focus:ring-teal-500/20">{label}</button>)}
+            </nav>
+          </div>
+          <RevealOnScroll><div className="rounded-[2rem] border border-white bg-gradient-to-br from-teal-50 via-white to-indigo-50 p-5 shadow-soft sm:p-6"><AuditTrailFlow /></div></RevealOnScroll>
+        </div>
+      </section>
+
+      <SourceRegistry apiBaseUrl={apiBaseUrl} />
+
         <section id="career-knowledge" className="border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="career-knowledge-heading">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Career knowledge graph</p>
-              <h1 id="career-knowledge-heading" className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Explore the work behind a career.</h1>
+              <h2 id="career-knowledge-heading" className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Explore the work behind a career.</h2>
               <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">These are source-backed occupational reference records, not personalized matches. SkillScope shows their source, geography and limitations so you can inspect the evidence rather than trust an unexplained score.</p>
             </div>
             <button type="button" onClick={() => void loadCareerGraph()} disabled={graphLoadState === 'loading'} className="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:cursor-wait disabled:opacity-60">
@@ -299,12 +330,14 @@ export default function SourcesPage() {
           ) : null}
         </section>
 
-      <section id="privacy" className="border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="privacy-heading">
-        <div className="max-w-3xl">
+      <PersistencePanel apiBaseUrl={apiBaseUrl} />
+
+      <section id="privacy" className="ss-section border-t border-slate-200/80 py-12 sm:py-16" aria-labelledby="privacy-heading">
+        <div className="flex items-center gap-5"><span className="hidden sm:block"><PrivacyShield className="h-24 w-24" /></span><div className="max-w-3xl">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-700">Privacy and safety</p>
           <h2 id="privacy-heading" className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">How your data is handled.</h2>
           <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">This is a prototype, and these notes describe what it actually does today.</p>
-        </div>
+        </div></div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {[
             ['Where data lives', 'Profiles, evidence, challenge attempts and plans are stored in a SQLite database on the computer running the backend. Your browser keeps one opaque profile ID so you can reopen your profile.'],
@@ -312,11 +345,14 @@ export default function SourcesPage() {
             ['No sign-in yet', 'The API has no authentication. Use demo information only and do not enter real details about children until sign-in, verified consent and a security review exist.'],
             ['Your controls', 'You can correct or permanently delete evidence and your profile on the Profile page. The starting-path calculator on the Start page does not save anything.'],
             ['No hidden tracking', 'SkillScope does not watch activity in the background and does not read social media or other accounts. Repeated-behaviour evidence is recorded only with your specific consent.'],
+            ['Production safeguard', 'When the backend is switched to production mode, it refuses every student-data route until real sign-in, per-profile authorization and verified consent exist. This prototype is for demo data only.'],
             ['No outside AI service', 'Recommendations and plans come from transparent, rule-based logic that you can inspect. No external AI service receives your information.'],
           ].map(([title, body]) => <article key={title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3 className="font-semibold text-ink">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{body}</p></article>)}
         </div>
         <p className="mt-5 text-sm text-slate-600">Manage your saved information on the <a className="font-semibold text-teal-800 underline underline-offset-4" href={toHref('/profile')}>Profile page</a>.</p>
       </section>
+
+      <PrivacyControls apiBaseUrl={apiBaseUrl} />
     </div>
   );
 }

@@ -7,10 +7,12 @@ export const routes: RouteInfo[] = [
   { path: '/', label: 'Home', title: 'SkillScope AI — Discover what you could become' },
   { path: '/start', label: 'Start', title: 'Find your starting path' },
   { path: '/profile', label: 'Profile', title: 'Your evidence profile' },
+  { path: '/baseline', label: 'Baseline', title: 'Your starting snapshot', hideInNav: true },
   { path: '/challenges', label: 'Challenges', title: 'Daily challenge' },
   { path: '/careers', label: 'Careers', title: 'Career possibilities' },
   { path: '/plan', label: 'Plan', title: 'Your pathway plan' },
   { path: '/sources', label: 'Sources & privacy', title: 'Sources and privacy' },
+  { path: '/demo', label: 'Demo', title: 'Try a demo profile', hideInNav: true },
   { path: '/login', label: 'Log in', title: 'Log in', hideInNav: true },
 ];
 

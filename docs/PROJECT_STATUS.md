@@ -1,8 +1,8 @@
 # SkillScope AI — Project Status
 
-**Current checkpoint:** Stage 13 of 20 — Career pathway and action-plan engine  
-**Stage status:** Stage 13 implemented and regression-tested within the source-linked curated-graph prototype scope. Full O*NET/ESCO and Indian NCS/NSDC datasets remain unintegrated.  
-**Current backend verification:** 161 tests passed. Frontend TSX syntax transpilation is checked; dependency-backed TypeScript typecheck and Vite production build remain unverified because npm installation/registry access has failed in this environment.
+**Current checkpoint:** Stage 20 of 20 — Demo hardening, documentation, and handoff
+**Stage status:** Stages 19–20 are complete within the hackathon prototype scope. Student-data routes fail closed in production until authentication, per-profile authorization, and verified consent are implemented; request validation avoids echoing user inputs, selected narrative fields reject obvious email/phone identifiers, logs omit request/exception contents, private responses are no-store, production CORS requires configured HTTPS origins, and a demo-only notice plus privacy/safety checklist are present.
+**Current verification (2026-10-17):** 234 tests passed (`PYTHONPATH=backend pytest -q backend/tests tests`). Python compilation, 16 JSON files, the YAML source manifest, fresh local SQLite initialization, curated import (10 records/32 facts), graph rebuild (109 nodes/109 edges, current snapshot), and the live synthetic HTTP walkthrough passed. Available TSX syntax transpilation/CSS parsing are static checks only. Dependency-backed TypeScript typecheck, Vite production build, browser E2E/screen-reader audits, independent security review and legal review remain unverified. Do not use real student/minor data.
 
 ## Implemented stages
 
@@ -21,9 +21,13 @@
 | 11. Daily/regular discovery loop | Complete within prototype scope | Persisted activity/evidence history, age-scaled next task, student-led interpretation, explainable deterministic policy and frontend interaction. |
 | 12. Transparent recommendation and confidence engine | Complete within prototype scope | Versioned configurable initial heuristics, age-specific outputs, evidence confidence distinct from matching, cited source facts, explicit gaps, and deterministic next validation. No fit percentages. |
 | 13. Career pathway and action-plan engine | Complete within prototype scope | Age-aware, persistent plans; goal-change history; source-backed skill/work context; prerequisite caveats; gated time horizons. See `docs/PATHWAY_PLANS.md`. |
-| 14. User journeys and information architecture | Implemented, browser verification pending | Multi-page site with navigation, journey continuity, offline/404 states. See `docs/SITE_MAP.md`. |
-| 15. Frontend and visual design | In progress (parts 1-2) | Motion graphics added (bus roadmap, confidence gauge, mode compass, scroll reveal) plus a planner crash fix. See `docs/FRONTEND_MOTION.md`. Typecheck/build/browser checks pending. |
-| 16–20 | Not started | Await explicit approval after the Stage 13 checkpoint; see the master prompt for future scope. |
+| 14. User journeys and information architecture | Complete within prototype scope | Responsive journey navigation, baseline assessment UI, explicit next-step transitions, failure/conflict states, journey contract and tests. See `docs/USER_JOURNEYS.md`. |
+| 15. Frontend implementation and visual design | Complete within source/design-contract scope | Shared design tokens, contrast improvement for muted metadata, focus/reduced-motion behavior, responsive section alignment, and Stage 15 visual audit. See `docs/VISUAL_DESIGN_SYSTEM.md` and `docs/STAGE15_VISUAL_AUDIT.md`. Full browser rendering and production build remain unverified. |
+| 16. Backend, persistence, APIs, and integrations | Complete within local prototype scope | Checksum-tracked migrations; idempotent synthetic demo profile with challenge/evidence history; persistent preferences and recommendation snapshots; source lineage validation; environment-based database/cache settings; safe request-ID errors; cache verification, TTL, bounded retry and stale-file preservation. See `docs/STAGE16_PERSISTENCE_AND_INTEGRATIONS.md`. |
+| 17. Explainability and source validation UI | Complete within documented prototype scope | Recommendation audit trail joins evidence, local matching rules and source facts; source register exposes live/cached/curated/link-only/unavailable states, conflicts, taxonomy mapping uncertainty, and active-vs-built graph snapshot freshness. See `docs/STAGE17_EXPLAINABILITY_SOURCE_AUDIT.md`. |
+| 18. Privacy, security, fairness, accessibility, and child safety | Complete within demo-only prototype scope | Privacy notice, direct-identifier checks, safe errors/logging, production student-route fail-closed guard, CORS/header controls, deletion and accessibility tests. See `docs/PRIVACY_AND_SAFETY.md`. |
+| 19. Functional, data, and recommendation validation | Complete within demo validation scope | 234 passing tests include age-stratified behavior, recommendation alternatives/uncertainty, correction/deletion history, offline/no-key core loop, source metadata/duplicate checks, performance-versus-enjoyment separation, and source-stale/conflict handling. See `docs/VALIDATION_REPORT.md`. |
+| 20. Demo hardening, documentation, and handoff | Complete within environment boundary | Three idempotent synthetic age-mode fixtures, a repeatable local challenge/evidence/next-step walkthrough, architecture diagram, judging script, startup/source-ingestion/troubleshooting guidance, final status and limits. See `docs/JUDGING_DEMO_SCRIPT.md` and `docs/ARCHITECTURE.md`. |
 
 ## Current source-backed coverage
 
@@ -98,7 +102,7 @@ Stage 8 is implemented within the documented prototype scope. The current eviden
 - No secure guardian invitation/verification, retention automation, data export, or production privacy/security audit is implemented.
 - Browser storage retains an opaque profile UUID in localStorage to reopen a profile; the service persists evidence in SQLite.
 - Full frontend typecheck/build could not run because npm dependencies are unavailable offline and the registry has previously failed DNS resolution.
-- Stage 12 transparent recommendation/confidence engine and Stage 13 pathway/action-plan engine are implemented within prototype scope; Stage 14 onward has not started.
+- Stage 12 transparent recommendation/confidence engine, Stage 13 pathway/action-plan engine and Stage 14 user-journey/navigation flow are implemented within prototype scope; Stages 16 and earlier are implemented within their documented prototype scopes.
 
 **Historical next checkpoint at the Stage 8 milestone:** Stage 9 — Baseline Assessment Engine. This was superseded by Stages 9–12; the current checkpoint is recorded at the top of this document.
 
@@ -129,4 +133,61 @@ Stage 13 adds `backend/app/schemas/pathway_plans.py`, `backend/app/services/path
 
 **Current known limitations:** the source graph is a small curated extract; formal qualification relations and verified India-specific credentials are absent for the current hypotheses; any skill not documented is marked unrecorded rather than a deficiency; timeline ranges and suggested actions are heuristics, not guarantees. The API remains unauthenticated and is not safe for production use with real minors' data.
 
-**Stage 13 exit assessment:** plans have actionable ordered steps, expected outcomes, supporting evidence/source references where available, explicit prerequisite/source limitations, and clear edit/recalculate controls. Stage 13 is complete within the documented prototype scope. Stage 14 has not started and awaits explicit approval.
+**Stage 13 exit assessment:** plans have actionable ordered steps, expected outcomes, supporting evidence/source references where available, explicit prerequisite/source limitations, and clear edit/recalculate controls. Stage 13 was complete within the documented prototype scope. Stage 14 completion is recorded below.
+
+
+## Stage 14 completion checkpoint
+
+Stage 14 adds `JourneyNavigation.tsx` for the eight primary section anchors and an active-section indicator, `BaselineAssessment.tsx` for baseline issuance/response/skip/submission/result, and cross-step links through profile consent, discovery, career options, pathway planning and source inspection. The `#profile-settings` target exists even before a profile is created. The recommendation panel explicitly surfaces student-labelled mixed/conflicting evidence and points back to a validation activity. `data/user_journey_contract.json`, `docs/USER_JOURNEYS.md` and `backend/tests/test_user_journey_contract.py` record and test the navigation and state contract.
+
+**Stage 14 checks:** automated user-journey contract tests passed; full backend regression and frontend TSX syntax checks passed where available; package integrity and content audit completed. Dependency-backed typechecking, Vite build, and browser-level end-to-end automation remain unverified because the environment cannot install npm dependencies. See the exact commands and final count in the Stage 14 section of `docs/MASTER_BUILD_LOG.md`.
+
+**Limitations:** baseline drafts are in component memory and do not resume after browser refresh; users can start a new assessment. The API remains unauthenticated, and guardian consent is not independently verified. The ten-record curated graph and offline-source limitations remain.
+
+**Stage 14 exit assessment:** the required surfaces are navigable, consented profile creation gates saved evidence, the baseline is a functioning UI, the user can proceed through challenge → hypotheses → pathway plan → source review without developer tools, and first-time, loading, offline, error, unknown-evidence and mixed-evidence states are represented. Stage 14 is complete within the documented prototype scope. Stage 15 has not started and awaits explicit user approval.
+
+
+## Stage 15 completion checkpoint
+
+Stage 15 establishes a shared visual system in `frontend/src/index.css`: palette tokens, consistent panel and section-label classes, deliberate heading wrapping, overflow-safe long text, explicit keyboard focus rings, mobile input sizing and touch targets, stable anchor offsets, and reduced-motion support. The nested Baseline and Pathway sections no longer add a second max-width/horizontal-padding wrapper that narrowed them relative to the surrounding page. Shared panel styles have been applied to major profile, challenge, recommendation, and plan surfaces. `docs/VISUAL_DESIGN_SYSTEM.md` records design tokens and the contrast method; `docs/STAGE15_VISUAL_AUDIT.md` inventories every required surface and records the exact verification boundary.
+
+Stage 15 also repaired the pre-existing source-manifest drift exposed by full regression: the bundled occupation snapshot referenced `onet_online_curated_sample` and `esco_curated_sample`, while the manifest used version 2, omitted those source IDs, and did not report the already-imported curated extract. The manifest is now version 3 with those two curated samples explicitly labelled as imported extracts—not full or live source integration. A clean import path can therefore be tested without relaxing lineage validation.
+
+**Checks run:** `PYTHONPATH=backend pytest -q` — **167 passed**; `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed; TSX syntax transpilation over implementation files — passed; CSS parsed with PostCSS — passed; contrast assertions cover primary text, action and focus colors; navigation anchor uniqueness, required screen surfaces, no-op controls, and mobile/reduced-motion rules are checked by source-contract tests. ZIP integrity and package-content audits passed.
+
+**Limitations:** This environment has no installed project `node_modules` and an offline npm cache is unavailable. Consequently, `tsc -b`, `vite build`, and real browser screenshots/interaction checks at desktop/mobile widths remain unverified. Static source-contract checks and breakpoint styles do not substitute for those render-level checks. The app is still not production-safe for real minors' data until authentication/authorization and verified consent/security controls exist.
+
+**Stage 15 exit assessment:** Visual hierarchy, responsive styles, accessible focus behavior, reduced-motion handling, surface inventory, anchor consistency and source/privacy labeling have been implemented and source-audited. Stage 15 is complete within the documented source/design-contract scope; rendered browser review and the production build remain explicit follow-up checks when dependencies are available. Stage 16 has not started and awaits explicit user approval.
+
+
+## Stage 17 completion checkpoint
+
+Stage 17 adds `backend/app/schemas/source_registry.py`, `backend/app/services/source_registry.py`, `backend/app/api/source_registry.py`, `frontend/src/components/SourceRegistry.tsx`, the recommendation-card evidence/matching/source audit trace, and tests for registry states, explicit conflicts, non-exact mappings, active graph snapshots and UI contracts. The registry distinguishes last review date from successful sync time and labels a source live only when runtime metadata explicitly declares live data. It reports the graph builder/schema version and compares JSON-decoded `active_snapshots` metadata against the same successful-import snapshot-selection logic used by the graph builder, so stale graphs are visibly identified.
+
+**Checks run:** `PYTHONPATH=backend pytest -q` — **196 passed**; `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed; JSON/YAML source-contract validation and TSX syntax transpilation are checked; ZIP integrity/package-content audit passed. The source-registry API test exercises the current manifest and database metadata. A targeted fixture confirms stale snapshot IDs are surfaced rather than silently treated as current.
+
+**Limitations:** only the small curated occupation extract is available; no live source feed is claimed; conflict detection only finds locally flagged conflicts and cannot automatically discover every possible disagreement across external documents. The app remains unauthenticated with self-attested consent and is not production-safe with real student/minor data. Dependency-backed TypeScript typecheck, Vite build and browser E2E remain unverified because npm dependencies could not be installed.
+
+**Stage 17 exit assessment:** A reviewer can follow recommendation evidence through explicit local matching logic to attributable occupational source records, inspect unknowns and a next validation action, and review source freshness/conflict/mapping status. Stage 17 is complete within the documented prototype scope. Stage 18 has not started and awaits explicit user approval.
+
+
+## Stage 18 completion checkpoint
+
+Stage 18 adds `backend/app/schemas/privacy_validation.py`, selected-field free-text validators, production student-data route gating and restrictive CORS/header policy in `backend/app/main.py`, safe request-validation error responses, privacy-preserving exception logging, and a visible demo-only privacy notice in the evidence-ledger UI. `docs/PRIVACY_AND_SAFETY.md` records data minimization, consent boundaries, prohibited inference, user correction/deletion, fairness/accessibility safeguards, tests, and unmet production release gates. Two test modules cover consent, deletion cascades, identifier rejection/no-echo, production-mode route gates, CORS, headers, log redaction and major accessible journey contracts.
+
+**Checks run:** `PYTHONPATH=backend pytest -q backend/tests tests` — **217 passed**; Python compilation and JSON/YAML contract validation passed. TSX syntax transpilation and CSS parsing passed where available. The production-mode test confirms student-data APIs return 503 until identity authorization and verified consent are implemented.
+
+**Limitations:** obvious email/phone checks are not comprehensive data-loss prevention; guardian consent remains self-attested; authentication, per-profile authorization, verified guardian relationships, full deployment secret/log controls and retention/deletion-from-backups are not implemented. No qualified legal review against current Indian DPDP law/rules has been performed. This is not approved for public deployment or real student/minor data. npm dependencies were unavailable, so dependency-backed typecheck, Vite build and browser/screen-reader tests remain unverified.
+
+**Stage 18 exit assessment:** the privacy/safety checklist is written and consent, deletion, input handling, production gating, log redaction, security headers/CORS and source-level accessibility contracts are tested. Stage 18 is complete within the stated demo-only prototype scope. Stage 19 has not started and awaits explicit approval.
+
+
+## Stage 19–20 completion checkpoint (2026-10-17)
+
+Stage 19 validated recommendation behavior and local data/provenance contracts; Stage 20 made the demo repeatable and updated the handoff materials. The newly explicit regressions cover an age-10 profile with no prior evidence and a changed adult goal flowing into a new recommendation while historical goal/evidence records remain traceable. The demo seed creates exactly three age-mode fixtures marked `synthetic_demo`; repeating initialization does not duplicate records.
+
+**Verification:** `PYTHONPATH=backend pytest -q backend/tests tests` — **234 passed**; `PYTHONPATH=backend python -m compileall -q backend/app backend/tests` — passed; 16 JSON contracts and `data/sources_manifest.yaml` parsed; a clean temporary database initialized with migration versions 1–2, imported 10 curated records and 32 facts, rebuilt the graph to 109 nodes/109 edges with `is_stale: false` and `source_data_is_live: false`; `python scripts/demo_walkthrough.py --base-url http://127.0.0.1:8765` passed against a local server, adding one evidence item and changing the next task from `pattern-detective` to `data-story` with a recorded reason.
+
+**Not verified / limitations:** frontend dependency-backed TypeScript typecheck/Vite production build, real browser responsive/E2E and screen-reader audit could not be run because local `node_modules` are absent and package installation is unavailable here. No full O*NET/ESCO package or NCS/NSDC/PLFS runtime source feed has been integrated. No psychometric/predictive validation, approved pilot, qualified legal review, production authentication/per-profile authorization, independently verified guardian consent, full DLP, or independent penetration test exists. The production mode continues to block student-data endpoints until required authorization/consent controls are implemented. Keep all demos synthetic; do not deploy publicly with real student/minor data.
+
+**Exit assessment:** Stage 19–20 gates are complete within demo scope. This is a packaged hackathon prototype and honest handoff, not a production release certification.

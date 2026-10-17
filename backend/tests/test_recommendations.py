@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.schemas.provenance import QualityStatus, SourceRecord, SourceType
 from app.schemas.student_evidence import (
     AgeBand, ConsentBasis, EvidenceCreate, EvidenceSourceKind, EvidenceType,
     SignalDimension, UncertaintyLevel, UserInterpretation,
@@ -73,6 +74,22 @@ def setup_test(tmp_path, monkeypatch):
         career_provider=lambda **kwargs: CAREERS,
         graph_status_provider=lambda **kwargs: {"status": "ready", "is_stale": False, "limitations": ["Synthetic test graph."], "source_data_is_live": False},
     )
+    # Recommendations must cite a source record that actually exists in the internal registry.
+    # These are explicitly synthetic test fixtures with example.org links, never production facts.
+    unique_sources = {(item["source_id"], item["source_record_id"]): item
+                      for career_item in CAREERS
+                      for item in (career_item.get("source_references", []) +
+                                   [ref for group in (career_item.get("tasks", []) + career_item.get("skills", []))
+                                    for ref in group.get("source_references", [])])}
+    for key, raw in unique_sources.items():
+        repository.provenance.upsert_source(SourceRecord(
+            source_id=raw["source_id"], publisher=raw["publisher"], title=raw["title"],
+            source_type=SourceType.DEMO_FIXTURE, geography=raw.get("geography"),
+            source_uri="https://example.org/occupations", record_uri=raw.get("record_uri"),
+            source_version=raw.get("source_version"), accessed_at=datetime.now(UTC),
+            quality_status=QualityStatus.UNVERIFIED,
+            limitations=["Synthetic test fixture; not a production source."],
+        ), key[1])
     challenges = ChallengeRepository(db_path)
     monkeypatch.setattr("app.api.recommendations.repo", lambda: repository)
     monkeypatch.setattr("app.api.student_evidence.get_repository", lambda: repository.evidence)
@@ -130,6 +147,31 @@ def test_goal_overlap_returns_explainable_challenge_not_percentage(setup_test):
     assert rec["source_backed_pathway_facts"][0]["source"]["record_uri"].startswith("https://")
     assert result["weights_status"] == "initial_heuristic_parameters_not_scientifically_optimized"
     assert all("probability" not in item["hypothesis_label"].casefold() for item in result["recommendations"])
+
+
+def test_recommendation_snapshots_are_durable_and_expose_algorithm_version(setup_test):
+    client, repository, _ = setup_test
+    student = profile(client, goal="I want to explore software and creative technology")
+    first = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert first.status_code == 200, first.text
+    second = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert second.status_code == 200, second.text
+
+    history = client.get(f"/api/recommendations/{student['profile_id']}/history?limit=10")
+    assert history.status_code == 200, history.text
+    body = history.json()
+    assert len(body) == 2
+    assert all(row["algorithm_version"] == "transparent-career-match-v1.0" for row in body)
+    assert all(row["source_keys"] for row in body)
+
+    # A new repository instance sees the saved snapshots; they are not just in-process state.
+    restarted = RecommendationRepository(
+        repository.db_path,
+        career_provider=lambda **kwargs: CAREERS,
+        graph_status_provider=lambda **kwargs: {"status": "ready", "is_stale": False, "limitations": [], "source_data_is_live": False},
+    )
+    persisted_history = restarted.get_history(student["profile_id"], limit=10)
+    assert persisted_history is not None and len(persisted_history) == 2
 
 
 def test_missing_profile_returns_404(setup_test):
@@ -280,3 +322,195 @@ def test_skill_label_match_requires_contiguous_phrase_not_scattered_tokens(setup
     software = next(rec for rec in result["recommendations"] if rec["occupation"] == "Software Developers")
     assert not any(match["match_type"] == "exact_skill_label_overlap" for match in software["matches"])
     assert any(gap["gap_type"] == "unobserved_exact_skill_label" for gap in software["evidence_gaps"])
+
+
+def test_recommendation_exposes_full_distinct_observation_count_and_recency(setup_test):
+    client, _, _ = setup_test
+    student = profile(client, age="18_plus", goal="software engineering")
+    profile_id = student["profile_id"]
+    submit(client, profile_id, challenge_id="debug-the-process", note="I traced the logic and documented the error.")
+    response = client.get(f"/api/recommendations/{profile_id}")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    supported = [item for item in body["recommendations"] if item["distinct_observation_count"] > 0]
+    assert supported
+    item = supported[0]
+    assert item["most_recent_observation_at"]
+    assert item["evidence_detail_limit"] >= len(item["evidence_used"])
+    assert "probability" not in str(item["distinct_observation_count"]).lower()
+
+
+# Stage 19 validation scenarios: these are behavioural checks, not psychometric validation.
+def test_stage19_teen_software_goal_low_evidence_keeps_both_coding_and_non_coding_options(setup_test, monkeypatch):
+    from app.services.baseline_assessment import BaselineAssessmentRepository
+
+    client, repository, _ = setup_test
+    monkeypatch.setattr("app.api.baseline_assessment.repo", lambda: BaselineAssessmentRepository(repository.db_path))
+    student = profile(client, age="15_17", goal="I want to explore software engineering")
+    baseline = client.post(f"/api/baseline-assessments/for/{student['profile_id']}")
+    assert baseline.status_code == 201, baseline.text
+    assert baseline.json()["mode"] == "explore_and_validate"
+
+    result = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert result.status_code == 200, result.text
+    body = result.json()
+    labels = {item["occupation"] for item in body["recommendations"]}
+    assert "Software Developers" in labels
+    assert "Graphic Designers" in labels
+    software = next(item for item in body["recommendations"] if item["occupation"] == "Software Developers")
+    design = next(item for item in body["recommendations"] if item["occupation"] == "Graphic Designers")
+    assert software["evidence_confidence"] == "low"
+    assert software["next_validating_action"]["domain"] in {"technology", "logic_data"}
+    assert design["next_validating_action"]["domain"] == "design_creative"
+    assert any("validation" in reason.casefold() or "wording" in reason.casefold() for reason in software["rationale"])
+
+
+def test_stage19_teen_design_and_communication_evidence_retains_software_and_surfaces_alternative(setup_test):
+    client, repository, _ = setup_test
+    student = profile(client, age="15_17", goal="I want to explore software engineering")
+    for title, domain, note, enjoyment in (
+        ("Design activity reflection", "design_creative", "I enjoyed creating a visual layout and revising it after feedback.", 5),
+        ("Communication activity reflection", "communication", "I enjoyed explaining an idea to a different audience and improving the message.", 4),
+    ):
+        repository.evidence.add_evidence(student["profile_id"], EvidenceCreate(
+            evidence_type=EvidenceType.ACTIVITY_REFLECTION,
+            signal_dimension=SignalDimension.INTEREST,
+            title=title, observation=note, domain=domain,
+            source_kind=EvidenceSourceKind.SELF_REPORT,
+            uncertainty=UncertaintyLevel.MEDIUM,
+            user_interpretation=UserInterpretation.SUPPORTS_CURRENT_HYPOTHESIS,
+            reported_enjoyment=enjoyment,
+        ))
+    body = client.get(f"/api/recommendations/{student['profile_id']}").json()
+    software = next(item for item in body["recommendations"] if item["occupation"] == "Software Developers")
+    design = next(item for item in body["recommendations"] if item["occupation"] == "Graphic Designers")
+    assert software["category"] in {"challenge", "develop", "reconsider_refresh"}
+    assert design["category"] == "alternative_to_consider"
+    assert any(ref["domain"] in {"design_creative", "communication"} for ref in design["evidence_used"])
+    current_profile = client.get(f"/api/student-profiles/{student['profile_id']}").json()
+    assert current_profile["current_goal"] == "I want to explore software engineering"
+
+
+def test_stage19_evidence_deletion_recalculates_recommendation_history(setup_test):
+    client, _, _ = setup_test
+    student = profile(client, age="18_plus", goal="Software Developers")
+    submitted = submit(client, student["profile_id"], challenge_id="debug-the-process", note="I traced the software workflow and documented the process.")
+    before = client.get(f"/api/recommendations/{student['profile_id']}").json()
+    evidence_id = submitted["evidence_created_id"]
+    deleted = client.delete(f"/api/student-profiles/{student['profile_id']}/evidence/{evidence_id}")
+    assert deleted.status_code == 204
+    after = client.get(f"/api/recommendations/{student['profile_id']}").json()
+    assert before["evidence_count"] == after["evidence_count"] + 1
+    history = client.get(f"/api/recommendations/{student['profile_id']}/history?limit=10").json()
+    assert len(history) == 2
+    assert {row["evidence_count"] for row in history} == {before["evidence_count"], after["evidence_count"]}
+    remaining = client.get(f"/api/student-profiles/{student['profile_id']}/evidence").json()
+    assert evidence_id not in {item["evidence_id"] for item in remaining["items"]}
+
+
+def test_stage19_local_loop_does_not_require_external_api_keys_or_network(setup_test, monkeypatch):
+    from app.services.discovery_loop import DiscoveryLoopRepository
+    client, repository, _ = setup_test
+    monkeypatch.setattr("app.api.discovery_loop.repo", lambda: DiscoveryLoopRepository(repository.db_path))
+    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "SKILLSCOPE_LLM_API_KEY"):
+        monkeypatch.delenv(key, raising=False)
+    student = profile(client, age="15_17", goal="Explore a software project")
+    loop = client.get(f"/api/discovery-loop/{student['profile_id']}")
+    assert loop.status_code == 200, loop.text
+    challenge = loop.json()["next_challenge"]
+    assert challenge["challenge_id"] in {item.challenge_id for item in __import__("app.services.challenges", fromlist=["CHALLENGES"]).CHALLENGES}
+    # The mocked source graph is static, explicitly non-live, and the local loop works without keys/network.
+    result = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert result.status_code == 200, result.text
+    assert result.json()["catalog_status"] == "ready"
+    assert repository.graph_status_provider()["source_data_is_live"] is False
+
+
+def test_stage19_evidence_correction_is_reflected_in_future_snapshot_without_erasing_history(setup_test):
+    client, _, _ = setup_test
+    student = profile(client, age="18_plus", goal="Software Developers")
+    submitted = submit(client, student["profile_id"], note="I traced the workflow and documented the logic.")
+    first = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert first.status_code == 200, first.text
+    history_before = client.get(f"/api/recommendations/{student['profile_id']}/history?limit=10").json()
+
+    corrected = client.patch(
+        f"/api/student-profiles/{student['profile_id']}/evidence/{submitted['evidence_created_id']}",
+        json={
+            "observation": "Correction: I enjoyed explaining the interface to another person; task performance is not a general skill rating.",
+            "domain": "communication",
+            "reported_enjoyment": 5,
+            "user_interpretation": "contextual_or_mixed",
+        },
+    )
+    assert corrected.status_code == 200, corrected.text
+    assert corrected.json()["observation"].startswith("Correction:")
+    assert corrected.json()["reported_enjoyment"] == 5
+    second = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert second.status_code == 200, second.text
+    history_after = client.get(f"/api/recommendations/{student['profile_id']}/history?limit=10").json()
+    assert len(history_after) == len(history_before) + 1
+    # Earlier generated snapshots remain traceable as historical records; the corrected ledger item is current.
+    current_items = client.get(f"/api/student-profiles/{student['profile_id']}/evidence").json()["items"]
+    assert any(item["evidence_id"] == submitted["evidence_created_id"] and item["observation"].startswith("Correction:") for item in current_items)
+
+
+def test_stage19_adult_with_no_goal_and_conflicting_interpretation_enters_rediscovery_without_forced_choice(setup_test, monkeypatch):
+    from app.services.discovery_loop import DiscoveryLoopRepository
+
+    client, repository, _ = setup_test
+    monkeypatch.setattr("app.api.discovery_loop.repo", lambda: DiscoveryLoopRepository(repository.db_path))
+    student = profile(client, age="18_plus", goal=None)
+    submit(client, student["profile_id"], interpretation="challenges_current_hypothesis", note="This task did not feel like a direction I want to pursue.", willingness=3)
+
+    loop = client.get(f"/api/discovery-loop/{student['profile_id']}?preference=balanced")
+    assert loop.status_code == 200, loop.text
+    assert loop.json()["next_challenge"]["reason_code"] == "test_alternative_pathway"
+    recommendations = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert recommendations.status_code == 200, recommendations.text
+    body = recommendations.json()
+    assert body["current_goal"] is None
+    assert body["recommendations"]
+    assert not any(item["category"] == "develop" for item in body["recommendations"])
+    assert all(item["evidence_confidence"] != "high" for item in body["recommendations"])
+
+
+def test_stage19_age_10_with_no_prior_evidence_gets_broad_exploration_not_an_occupation(setup_test):
+    client, _, _ = setup_test
+    student = profile(client, age="10_14", goal=None)
+    evidence = client.get(f"/api/student-profiles/{student['profile_id']}/evidence")
+    assert evidence.status_code == 200 and evidence.json()["count"] == 0
+
+    response = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["catalog_status"] == "not_required_for_10_14_exploration"
+    assert body["evidence_count"] == 0
+    assert body["recommendations"]
+    assert all(item["recommendation_type"] == "broad_domain_hypothesis" for item in body["recommendations"])
+    assert all(item["occupation"] is None for item in body["recommendations"])
+
+
+def test_stage19_career_goal_change_updates_new_recommendation_and_preserves_prior_goal_history(setup_test):
+    client, _, _ = setup_test
+    student = profile(client, age="18_plus", goal="Explore software engineering")
+    first = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert first.status_code == 200 and first.json()["current_goal"] == "Explore software engineering"
+
+    patched = client.patch(f"/api/student-profiles/{student['profile_id']}", json={
+        "current_goal": "Explore graphic design and communication",
+    })
+    assert patched.status_code == 200, patched.text
+    second = client.get(f"/api/recommendations/{student['profile_id']}")
+    assert second.status_code == 200, second.text
+    assert second.json()["current_goal"] == "Explore graphic design and communication"
+
+    goals = client.get(f"/api/student-profiles/{student['profile_id']}/evidence?signal_dimension=goal_preference")
+    assert goals.status_code == 200
+    observations = [item["observation"] for item in goals.json()["items"]]
+    assert any("Explore software engineering" in item for item in observations)
+    assert any("Explore graphic design and communication" in item for item in observations)
+
+    history = client.get(f"/api/recommendations/{student['profile_id']}/history?limit=10")
+    assert history.status_code == 200
+    assert len(history.json()) >= 2

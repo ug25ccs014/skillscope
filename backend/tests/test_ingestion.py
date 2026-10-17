@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import sqlite3
 import zipfile
 from pathlib import Path
 
@@ -380,6 +381,148 @@ def test_download_onet_uses_allowlisted_host_and_writes_hash_sidecar(tmp_path):
     assert json.loads(Path(str(target) + ".metadata.json").read_text(encoding="utf-8"))["header_validation"] == "passed"
     state = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
     assert state["sources"]["onet_database"]["last_attempt"]["status"] == "downloaded"
+
+
+def test_download_uses_verified_fresh_cache_without_network(tmp_path):
+    asset = ASSETS["onet_occupation_data"]
+    payload = b"O*NET-SOC Code,Title,Description\n15-1252.00,Software Developers,Build software\n"
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        return httpx.Response(200, headers={"content-type": "text/csv"}, content=payload, request=request)
+
+    def factory(**kwargs):
+        return httpx.Client(transport=httpx.MockTransport(handler), **kwargs)
+
+    common = {
+        "raw_root": tmp_path / "raw",
+        "state_path": tmp_path / "state.json",
+        "runs_root": tmp_path / "runs",
+        "retries": 0,
+        "cache_ttl_seconds": 3600,
+        "minimum_interval_seconds": 0,
+    }
+    first = download_asset("onet_occupation_data", client_factory=factory, **common)
+    assert first["sha256"] == hashlib.sha256(payload).hexdigest()
+    assert len(calls) == 1
+
+    def no_network_factory(**kwargs):
+        raise AssertionError("fresh cache hit must not create an HTTP client")
+
+    second = download_asset("onet_occupation_data", client_factory=no_network_factory, **common)
+    assert second["cache_status"] == "fresh_cache_hit"
+    assert second["sha256"] == first["sha256"]
+    assert second["cache_age_seconds"] >= 0
+    state = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
+    assert state["sources"]["onet_database"]["last_attempt"]["status"] == "cache_hit"
+    assert state["sources"]["onet_database"]["last_successful_operation"]["status"] == "downloaded"
+
+
+def test_corrupt_cache_checksum_forces_refresh(tmp_path):
+    payload = b"O*NET-SOC Code,Title,Description\n15-1252.00,Software Developers,Build software\n"
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        return httpx.Response(200, headers={"content-type": "text/csv"}, content=payload, request=request)
+
+    def factory(**kwargs):
+        return httpx.Client(transport=httpx.MockTransport(handler), **kwargs)
+
+    common = {
+        "raw_root": tmp_path / "raw", "state_path": tmp_path / "state.json", "runs_root": tmp_path / "runs",
+        "retries": 0, "cache_ttl_seconds": 3600, "minimum_interval_seconds": 0,
+    }
+    download_asset("onet_occupation_data", client_factory=factory, **common)
+    target = tmp_path / "raw" / "onet_database" / "O*NET_Database_31.0" / "occupation_data.csv"
+    target.write_bytes(target.read_bytes() + b"tampered")
+    refreshed = download_asset("onet_occupation_data", client_factory=factory, **common)
+    assert refreshed["sha256"] == hashlib.sha256(payload).hexdigest()
+    assert len(calls) == 2
+    assert target.read_bytes() == payload
+
+
+def test_failed_refresh_preserves_last_known_file_and_records_failure(tmp_path):
+    payload = b"O*NET-SOC Code,Title,Description\n15-1252.00,Software Developers,Build software\n"
+
+    def success_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "text/csv"}, content=payload, request=request)
+
+    def success_factory(**kwargs):
+        return httpx.Client(transport=httpx.MockTransport(success_handler), **kwargs)
+
+    common = {
+        "raw_root": tmp_path / "raw", "state_path": tmp_path / "state.json", "runs_root": tmp_path / "runs",
+        "retries": 0, "cache_ttl_seconds": 3600, "minimum_interval_seconds": 0,
+    }
+    download_asset("onet_occupation_data", client_factory=success_factory, **common)
+    target = tmp_path / "raw" / "onet_database" / "O*NET_Database_31.0" / "occupation_data.csv"
+    sidecar = Path(str(target) + ".metadata.json")
+    old_file, old_sidecar = target.read_bytes(), sidecar.read_bytes()
+
+    def failed_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(503, request=request)
+
+    def failed_factory(**kwargs):
+        return httpx.Client(transport=httpx.MockTransport(failed_handler), **kwargs)
+
+    with pytest.raises(IngestionError, match="Could not download"):
+        download_asset("onet_occupation_data", client_factory=failed_factory, force_refresh=True, **common)
+    assert target.read_bytes() == old_file
+    assert sidecar.read_bytes() == old_sidecar
+    state = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
+    assert state["sources"]["onet_database"]["last_attempt"]["status"] == "download_failed"
+    assert state["sources"]["onet_database"]["last_successful_operation"]["status"] == "downloaded"
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"cache_ttl_seconds": -1}, {"cache_ttl_seconds": 31_536_001},
+    {"minimum_interval_seconds": -0.1}, {"minimum_interval_seconds": 61},
+])
+def test_download_rejects_invalid_cache_and_rate_limit_settings(tmp_path, kwargs):
+    with pytest.raises(IngestionValidationError, match="cache_ttl_seconds|minimum_interval_seconds"):
+        download_asset("onet_occupation_data", raw_root=tmp_path / "raw", **kwargs)
+
+
+def test_retry_after_is_respected_and_refresh_metadata_updates_sqlite_cache_state(tmp_path, monkeypatch):
+    import app.services.ingestion.downloads as downloads
+    from app.services.database import initialize_database
+
+    db_path = tmp_path / "app.db"
+    initialize_database(db_path, seed_demo=False)
+    ledger_path = tmp_path / "state.json"
+    monkeypatch.setattr(downloads, "STATE_PATH", ledger_path)
+    monkeypatch.setattr(downloads, "resolve_database_path", lambda: db_path)
+    sleep_values = []
+    monkeypatch.setattr(downloads.time, "sleep", lambda seconds: sleep_values.append(seconds))
+
+    payload = b"O*NET-SOC Code,Title,Description\n15-1252.00,Software Developers,Build software\n"
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(429, headers={"Retry-After": "0"}, request=request)
+        return httpx.Response(200, headers={"content-type": "text/csv"}, content=payload, request=request)
+
+    def factory(**kwargs):
+        return httpx.Client(transport=httpx.MockTransport(handler), **kwargs)
+
+    metadata = download_asset(
+        "onet_occupation_data", raw_root=tmp_path / "raw", state_path=ledger_path,
+        runs_root=tmp_path / "runs", retries=1, cache_ttl_seconds=3600,
+        minimum_interval_seconds=0, client_factory=factory,
+    )
+    assert len(calls) == 2
+    assert sleep_values == [0.0]
+    assert metadata["sha256"] == hashlib.sha256(payload).hexdigest()
+    with sqlite3.connect(db_path) as db:
+        row = db.execute(
+            "SELECT cache_status,checksum_sha256,last_error_category FROM source_cache_state WHERE source_id=?",
+            ("onet_database",),
+        ).fetchone()
+    assert row == ("fresh", hashlib.sha256(payload).hexdigest(), None)
 
 
 def test_download_onet_refuses_unknown_asset_without_network(tmp_path):

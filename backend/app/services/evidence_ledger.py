@@ -31,7 +31,10 @@ from app.schemas.student_evidence import (
     UserInterpretation,
 )
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parents[3] / "data" / "skillscope.db"
+from app.config import resolve_database_path
+from app.services.database import connect_sqlite
+
+DEFAULT_DB_PATH = resolve_database_path()
 SUMMARY_POLICY_VERSION = "evidence-summary-v1.0"
 
 
@@ -61,10 +64,7 @@ class EvidenceLedgerRepository:
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
-        db = sqlite3.connect(self.db_path)
-        db.execute("PRAGMA foreign_keys = ON")
-        db.row_factory = sqlite3.Row
-        return db
+        return connect_sqlite(self.db_path)
 
     def _initialize(self) -> None:
         with self._connect() as db:

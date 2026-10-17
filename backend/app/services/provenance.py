@@ -23,7 +23,10 @@ from app.schemas.provenance import (
     SourceType,
 )
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parents[3] / "data" / "skillscope.db"
+from app.config import resolve_database_path
+from app.services.database import connect_sqlite
+
+DEFAULT_DB_PATH = resolve_database_path()
 
 
 class ProvenanceRepository:
@@ -33,12 +36,8 @@ class ProvenanceRepository:
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.db_path)
-        # SQLite enables foreign-key enforcement per connection, not per database.
-        # Set it here so every repository method (not just bulk ingestion) enforces lineage.
-        connection.execute("PRAGMA foreign_keys = ON")
-        connection.row_factory = sqlite3.Row
-        return connection
+        # Shared connection policy enforces FK checks, busy timeout, and row mapping.
+        return connect_sqlite(self.db_path)
 
     def _initialize(self) -> None:
         with self._connect() as db:

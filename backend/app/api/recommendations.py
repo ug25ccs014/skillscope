@@ -30,3 +30,15 @@ def read_recommendations(
     if result is None:
         raise HTTPException(status_code=404, detail="Student profile not found.")
     return result
+
+
+@router.get("/{profile_id}/history")
+def read_recommendation_history(
+    profile_id: UUID,
+    limit: int = Query(default=20, ge=1, le=100),
+) -> list[dict[str, object]]:
+    """Return persisted summary metadata for previous recommendation snapshots."""
+    history = repo().get_history(profile_id, limit=limit)
+    if history is None:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+    return history

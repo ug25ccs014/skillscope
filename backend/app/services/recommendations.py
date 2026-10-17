@@ -41,7 +41,8 @@ from app.schemas.student_evidence import (
 from app.services.challenges import CHALLENGES, ChallengeRepository, LIBRARY
 from app.services.evidence_ledger import EvidenceLedgerRepository
 from app.services.knowledge_graph import graph_status, list_career_cards
-from app.services.provenance import DEFAULT_DB_PATH
+from app.services.provenance import DEFAULT_DB_PATH, ProvenanceRepository
+from app.services.database import connect_sqlite
 
 ROOT = Path(__file__).resolve().parents[3]
 POLICY_PATH = ROOT / "data" / "recommendation_weights.json"
@@ -185,6 +186,16 @@ def _parse_datetime(value: Any) -> datetime | None:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=UTC)
     return dt.astimezone(UTC)
+
+
+def _observation_summary(items: Iterable[EvidenceItem]) -> tuple[int, str | None]:
+    """Summarize distinct evidence records before the display trace is bounded."""
+    unique: dict[UUID, EvidenceItem] = {}
+    for item in items:
+        unique.setdefault(item.evidence_id, item)
+    dated = [parsed for item in unique.values() if (parsed := _parse_datetime(item.observed_at)) is not None]
+    latest = max(dated, default=None)
+    return len(unique), latest.isoformat() if latest else None
 
 
 def _challenge_id(item: EvidenceItem) -> str | None:
@@ -393,11 +404,28 @@ def _choose_challenge(age_band: AgeBand, domains: list[str], evidence: list[Evid
     age = ChallengeAgeBand(age_band.value)
     tried = {_challenge_id(item) for item in evidence if _challenge_id(item)}
     domain_counts = Counter(item.domain for item in _activity_evidence(evidence) if item.domain)
+    # Keep the authored mapping's order as the stable tie-break after exposure count. The first
+    # mapped domain is the intended primary exploration context (e.g. design for Graphic Designers),
+    # not a claim of higher fit. A zero-exposure tie should not make a design hypothesis prescribe
+    # a generic technology task merely because that family appears earlier in the challenge catalog.
+    mapped_order = {domain: index for index, domain in enumerate(dict.fromkeys(domains))}
+    valid_domains = {item.value for item in ChallengeDomain}
     ordered_domains = sorted(
-        {domain for domain in domains if domain in {item.value for item in ChallengeDomain}},
-        key=lambda domain: (domain_counts.get(domain, 0), next((idx for idx, challenge in enumerate(CHALLENGES) if challenge.domain.value == domain), 999), domain),
+        {domain for domain in domains if domain in valid_domains},
+        key=lambda domain: (domain_counts.get(domain, 0), mapped_order.get(domain, 999), domain),
     )
-    candidates = [ch for ch in CHALLENGES if not ordered_domains or ch.domain.value in ordered_domains]
+    if ordered_domains:
+        # Preserve domain priority when building the candidate list. Filtering the global catalog
+        # alone would retain its fixed order and could send a design hypothesis to a generic coding
+        # task merely because technology challenges appear first in the catalog.
+        candidates = [
+            challenge
+            for domain in ordered_domains
+            for challenge in CHALLENGES
+            if challenge.domain.value == domain
+        ]
+    else:
+        candidates = list(CHALLENGES)
     if not candidates:
         candidates = list(CHALLENGES)
     unused = [challenge for challenge in candidates if challenge.challenge_id not in tried]
@@ -428,6 +456,7 @@ def _recommend_domain_hypotheses(
     recs: list[CareerHypothesisRecommendation] = []
     for domain in domains_ordered:
         related = [item for item in evidence if item.domain == domain.value]
+        observation_count, most_recent = _observation_summary(related)
         used = [_evidence_trace(item, "This record identifies the domain in which a student-chosen activity took place; it records exposure, not ability.") for item in related[:5]]
         level, breakdown = _confidence(related, [], date.today())
         recs.append(CareerHypothesisRecommendation(
@@ -447,6 +476,9 @@ def _recommend_domain_hypotheses(
                 "This domain is suggested to broaden exposure; an untried domain is unknown, not a weakness or low potential.",
                 f"The current record contains {len(related)} activity-evidence item(s) in this domain; no aptitude or career-fit score is produced.",
             ],
+            distinct_observation_count=observation_count,
+            most_recent_observation_at=most_recent,
+            evidence_detail_limit=5,
             matches=[RecommendationMatch(
                 match_type="broad_domain_exposure", label=DOMAIN_LABELS[domain],
                 explanation=f"{len(related)} recorded activity-evidence item(s) are associated with this domain. Exposure is not evidence of ability.",
@@ -581,6 +613,7 @@ def build_recommendation_set(
             if item not in confidence_related:
                 confidence_related.append(item)
         confidence_level, confidence_breakdown = _confidence(confidence_related, citations, today)
+        observation_count, most_recent = _observation_summary(confidence_related)
 
         matches: list[RecommendationMatch] = []
         if goal_supplied:
@@ -689,6 +722,9 @@ def build_recommendation_set(
             confidence_breakdown=confidence_breakdown,
             rationale=reason_lines,
             matches=matches,
+            distinct_observation_count=observation_count,
+            most_recent_observation_at=most_recent,
+            evidence_detail_limit=8,
             evidence_used=evidence_used,
             evidence_gaps=gaps,
             source_backed_pathway_facts=facts,
@@ -743,8 +779,93 @@ class RecommendationRepository:
                  graph_status_provider: Callable[..., dict[str, Any]] | None = None):
         self.db_path = Path(db_path) if db_path else DEFAULT_DB_PATH
         self.evidence = EvidenceLedgerRepository(self.db_path)
+        self.provenance = ProvenanceRepository(self.db_path)
         self.career_provider = career_provider or list_career_cards
         self.graph_status_provider = graph_status_provider or graph_status
+        with connect_sqlite(self.db_path) as db:
+            db.execute("""CREATE TABLE IF NOT EXISTS recommendation_snapshots (
+                snapshot_id TEXT PRIMARY KEY,
+                profile_id TEXT NOT NULL,
+                algorithm_version TEXT NOT NULL,
+                generated_at TEXT NOT NULL,
+                evidence_count INTEGER NOT NULL CHECK(evidence_count >= 0),
+                catalog_status TEXT NOT NULL,
+                source_keys_json TEXT NOT NULL DEFAULT '[]',
+                snapshot_json TEXT NOT NULL,
+                FOREIGN KEY(profile_id) REFERENCES student_profiles(profile_id) ON DELETE CASCADE
+            )""")
+            db.execute("CREATE INDEX IF NOT EXISTS idx_recommendation_snapshots_profile_generated ON recommendation_snapshots(profile_id, generated_at DESC, snapshot_id)")
+
+    def _validate_recommendation_lineage(self, result: RecommendationSet) -> list[str]:
+        """Fail closed if a response cites evidence or sources that do not resolve internally."""
+        source_keys: set[str] = set()
+        evidence_ids: set[str] = set()
+        for recommendation in result.recommendations:
+            evidence_ids.update(str(item.evidence_id) for item in recommendation.evidence_used)
+            for match in recommendation.matches:
+                evidence_ids.update(str(item) for item in match.evidence_ids)
+            sources = [item.source for item in recommendation.source_backed_pathway_facts]
+            for match in recommendation.matches:
+                sources.extend(match.source_references)
+            for source in sources:
+                if source.source_id == "unknown" or source.source_record_id == "unknown":
+                    raise RecommendationCatalogError("A recommendation contains a source without an internal source-record identity.", 503)
+                source_keys.add(f"{source.source_id}:{source.source_record_id}")
+                with connect_sqlite(self.db_path) as db:
+                    internal_source = db.execute(
+                        "SELECT source_uri,record_uri FROM source_records WHERE source_id=? AND source_record_id=?",
+                        (source.source_id, source.source_record_id),
+                    ).fetchone()
+                    if internal_source is None:
+                        raise RecommendationCatalogError(
+                            "A recommendation source reference is missing from the internal provenance registry. Rebuild the curated graph before retrying.", 503
+                        )
+                    # A registry row without an original source URI is not auditable enough to
+                    # back a career fact. Link-only source records may use source_uri when a
+                    # record-specific URI is unavailable.
+                    if not (internal_source["record_uri"] or internal_source["source_uri"]):
+                        raise RecommendationCatalogError(
+                            "An internal source record has no original source URI. Review its provenance before retrying.", 503
+                        )
+        if evidence_ids:
+            placeholders = ",".join("?" for _ in evidence_ids)
+            with connect_sqlite(self.db_path) as db:
+                rows = db.execute(
+                    f"SELECT evidence_id FROM student_evidence_items WHERE profile_id=? AND evidence_id IN ({placeholders})",
+                    (str(result.profile_id), *sorted(evidence_ids)),
+                ).fetchall()
+            resolved = {str(row["evidence_id"]) for row in rows}
+            if resolved != evidence_ids:
+                raise RecommendationCatalogError("A recommendation references evidence that does not belong to this profile.", 503)
+        return sorted(source_keys)
+
+    def _persist_snapshot(self, result: RecommendationSet, source_keys: list[str]) -> None:
+        from uuid import uuid4
+        generated_at = datetime.now(UTC).replace(microsecond=0).isoformat()
+        payload = result.model_dump(mode="json")
+        with connect_sqlite(self.db_path) as db:
+            db.execute(
+                """INSERT INTO recommendation_snapshots(
+                    snapshot_id,profile_id,algorithm_version,generated_at,evidence_count,catalog_status,source_keys_json,snapshot_json
+                ) VALUES(?,?,?,?,?,?,?,?)""",
+                (str(uuid4()), str(result.profile_id), result.algorithm_version, generated_at,
+                 result.evidence_count, result.catalog_status, json.dumps(source_keys, sort_keys=True),
+                 json.dumps(payload, ensure_ascii=False, sort_keys=True)),
+            )
+
+    def get_history(self, profile_id: str | UUID, *, limit: int = 20) -> list[dict[str, Any]] | None:
+        if self.evidence.get_profile(profile_id) is None:
+            return None
+        with connect_sqlite(self.db_path) as db:
+            rows = db.execute(
+                """SELECT snapshot_id,algorithm_version,generated_at,evidence_count,catalog_status,source_keys_json
+                   FROM recommendation_snapshots WHERE profile_id=? ORDER BY generated_at DESC,snapshot_id DESC LIMIT ?""",
+                (str(profile_id), limit),
+            ).fetchall()
+        return [{"snapshot_id": row["snapshot_id"], "profile_id": str(profile_id),
+                 "algorithm_version": row["algorithm_version"], "generated_at": row["generated_at"],
+                 "evidence_count": int(row["evidence_count"]), "catalog_status": row["catalog_status"],
+                 "source_keys": json.loads(row["source_keys_json"])} for row in rows]
 
     def get_recommendations(self, profile_id: str | UUID, *, limit: int = 5) -> RecommendationSet | None:
         profile = self.evidence.get_profile(profile_id)
@@ -767,6 +888,9 @@ class RecommendationRepository:
         else:
             # Broad exploration for 10-14 intentionally works without loading career labels.
             careers = []
-        return build_recommendation_set(
+        result = build_recommendation_set(
             profile, evidence, total, careers, graph_info, limit=limit, policy=policy, domain_policy=domain_policy,
         )
+        source_keys = self._validate_recommendation_lineage(result)
+        self._persist_snapshot(result, source_keys)
+        return result

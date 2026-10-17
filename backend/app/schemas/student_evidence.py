@@ -12,6 +12,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, model_validator
 
+from app.schemas.privacy_validation import validate_text_tree, validate_user_text
+
 
 class AgeBand(str, Enum):
     AGE_10_14 = "10_14"
@@ -69,6 +71,11 @@ class UserInterpretation(str, Enum):
 class RubricObservation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    @field_validator("criterion", "observation", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
+
     criterion: str = Field(min_length=1, max_length=120)
     observation: str = Field(min_length=1, max_length=500)
     score: float | None = Field(default=None, ge=-1_000_000, le=1_000_000)
@@ -85,6 +92,11 @@ class RubricObservation(BaseModel):
 
 class StudentProfileCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("current_goal", "self_reported_context", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
 
     age_band: AgeBand
     consent_basis: ConsentBasis
@@ -105,6 +117,11 @@ class StudentProfileCreate(BaseModel):
 
 class StudentProfileUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("current_goal", "self_reported_context", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
 
     age_band: AgeBand | None = None
     consent_basis: ConsentBasis | None = None
@@ -129,6 +146,16 @@ class StudentProfile(BaseModel):
 
 class EvidenceCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("title", "observation", "domain", "challenge_label", "rubric_name", "rubric_version", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def prevent_contact_details_in_context(cls, value: object) -> object:
+        return validate_text_tree(value)
 
     evidence_type: EvidenceType
     signal_dimension: SignalDimension
@@ -203,6 +230,16 @@ class EvidenceCreate(BaseModel):
 class EvidenceUpdate(BaseModel):
     """Patch model for user correction; identity and original recording time are immutable."""
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("title", "observation", "domain", "challenge_label", "rubric_name", "rubric_version", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def prevent_contact_details_in_context(cls, value: object) -> object:
+        return validate_text_tree(value)
 
     evidence_type: EvidenceType | None = None
     signal_dimension: SignalDimension | None = None

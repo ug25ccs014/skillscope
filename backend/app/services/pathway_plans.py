@@ -182,7 +182,7 @@ def _requirement_catalog(recommendations: RecommendationSet, career_cards: list[
             label = str(relationship.get("to_label") or relationship.get("label") or "Qualification requirement").strip()
             sources = relationship.get("source_references") or []
             key = (label.casefold(), json.dumps(sources, sort_keys=True, default=str))
-            if key in seen or not sources:
+            if key in seen:
                 continue
             seen.add(key)
             source_models = []
@@ -191,12 +191,32 @@ def _requirement_catalog(recommendations: RecommendationSet, career_cards: list[
                     source_models.append(RecommendationSource.model_validate(source))
                 except Exception:
                     continue
-            if source_models:
+            # A stale, conflicted, unverified, or source-less qualification relationship must not
+            # become a formal prerequisite just because a label exists in a graph edge.
+            acceptable = bool(source_models) and all(
+                item.quality_status.casefold() in {"reviewed", "verified"}
+                and bool(item.record_uri)
+                for item in source_models
+            )
+            if acceptable:
                 requirements.append(PlanRequirement(
                     label=label, status="source_backed_requirement",
                     statement=f"The active graph contains a source-linked qualification relationship to: {label}.",
                     is_prerequisite=True, source_references=source_models,
                     limitations=["Confirm current applicability, geography, and entry context directly with the source or an appropriate adviser."],
+                ))
+            else:
+                requirements.append(PlanRequirement(
+                    label=label, status="not_available_in_catalog",
+                    statement=(
+                        f"A graph relationship mentions {label}, but its qualification status is not supported by a current, reviewed source. "
+                        "It is retained for verification and is not asserted as a current prerequisite."
+                    ),
+                    is_prerequisite=None, source_references=source_models,
+                    limitations=[
+                        "Verify the exact qualification name, issuer, geography, version/status and current official record before using it.",
+                        "An absent source reference or stale/conflicted/unverified source is not evidence of a current requirement.",
+                    ],
                 ))
     for rec in recommendations.recommendations[:3]:
         for fact in rec.source_backed_pathway_facts[:3]:
@@ -496,10 +516,8 @@ class PathwayPlanRepository:
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
-        db = sqlite3.connect(self.db_path)
-        db.row_factory = sqlite3.Row
-        db.execute("PRAGMA foreign_keys = ON")
-        return db
+        from app.services.database import connect_sqlite
+        return connect_sqlite(self.db_path)
 
     def _initialize(self) -> None:
         with self._connect() as db:

@@ -9,7 +9,8 @@ from enum import Enum
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from app.schemas.privacy_validation import validate_user_text
 
 from app.schemas.recommendations import RecommendationSource, SourcedPathwayFact
 from app.schemas.student_evidence import AgeBand
@@ -27,6 +28,11 @@ class DesiredTimeline(str, Enum):
 class PlanInput(BaseModel):
     """Student-controlled planning context; adult planning fields are checked against age on save."""
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("current_goal", "current_skills_summary", "education_summary", "experience_summary", "planning_constraints", mode="before")
+    @classmethod
+    def prevent_contact_details(cls, value: object) -> object:
+        return validate_user_text(value)
 
     # Presence of current_goal in model_fields_set means the user deliberately edited it.
     current_goal: str | None = Field(default=None, max_length=500)

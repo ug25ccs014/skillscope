@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { MOTION_EVENT } from './motionSwitch';
 
 export type MotionPreference = {
   /** The visitor asked the OS/browser for less motion (or forced it with ?motion=off). */
@@ -72,7 +73,8 @@ export function useMotionPreference(): MotionPreference {
     const update = () => setPref(read());
     reduced.addEventListener('change', update);
     fine.addEventListener('change', update);
-    return () => { reduced.removeEventListener('change', update); fine.removeEventListener('change', update); };
+    window.addEventListener(MOTION_EVENT, update);
+    return () => { reduced.removeEventListener('change', update); fine.removeEventListener('change', update); window.removeEventListener(MOTION_EVENT, update); };
   }, []);
   return pref;
 }

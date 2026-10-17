@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.schemas.privacy_validation import validate_user_text
+
 
 class AgeBand(str, Enum):
     AGES_10_14 = "10-14"
@@ -194,7 +196,8 @@ class CalibrationRequest(BaseModel):
     def normalize_optional_text(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        cleaned = " ".join(value.split())
+        checked = validate_user_text(value)
+        cleaned = " ".join(checked.split())
         return cleaned or None
 
     @field_validator("unexplored_domains")

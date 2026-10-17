@@ -1,5 +1,7 @@
 import RevealOnScroll from '../motion/RevealOnScroll';
 import ConstellationHero from '../motion/ConstellationHero';
+import StageRail from '../motion/StageRail';
+import AuditTrailFlow from '../motion/AuditTrailFlow';
 import { toHref } from '../router';
 
 // Short, visual overview of the real journey. Each step links to its real page.
@@ -69,10 +71,22 @@ export default function HomePage() {
         </section>
       </RevealOnScroll>
 
+      <RevealOnScroll>
+        <section className="pb-16 sm:pb-24" aria-labelledby="trust-heading">
+          <div className="text-center">
+            <p className={eyebrow}>Built to be trusted</p>
+            <h2 id="trust-heading" className={h2}>Saved, explained, protected.</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600">Your work stays between visits, every suggestion can be traced, and you decide what is kept.</p>
+          </div>
+          <div className="mt-10"><StageRail /></div>
+          <div className="mx-auto mt-10 max-w-2xl rounded-[2rem] border border-white bg-gradient-to-br from-teal-50 via-white to-indigo-50 p-5 shadow-sm"><AuditTrailFlow /></div>
+        </section>
+      </RevealOnScroll>
+
       <div className="cta-band relative mb-16 flex flex-col items-center gap-5 overflow-hidden rounded-[2.5rem] px-8 py-12 text-center text-white sm:py-16">
         <h2 className="relative font-display text-4xl font-semibold tracking-tight sm:text-5xl">Ready to begin?</h2>
         <p className="relative text-white/80">It takes about a minute.</p>
-        <a href={toHref('/start')} className="relative inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-sm font-bold text-ink shadow-glow transition hover:-translate-y-0.5 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-white/30">Find my starting path</a>
+        <div className="relative flex flex-wrap items-center justify-center gap-3"><a href={toHref('/start')} className="relative inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-sm font-bold text-ink shadow-glow transition hover:-translate-y-0.5 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-white/30">Find my starting path</a><a href={toHref('/demo')} className="relative inline-flex items-center justify-center rounded-full border border-white/40 bg-white/10 px-8 py-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/30">Try a demo student</a></div>
       </div>
     </div>
   );

@@ -1,0 +1,58 @@
+{
+  "contract_version": "user-journey-v1.0",
+  "primary_entry": "top",
+  "navigation_component": "frontend/src/components/JourneyNavigation.tsx",
+  "required_surfaces": [
+    {"id": "top", "purpose": "Welcome, approximate age entry, entry calibration", "owner": "frontend/src/App.tsx"},
+    {"id": "evidence-ledger", "purpose": "Consent explanation and pseudonymous evidence profile", "owner": "frontend/src/components/EvidenceLedger.tsx"},
+    {"id": "baseline-assessment", "purpose": "Age-aware initial exploratory baseline", "owner": "frontend/src/components/BaselineAssessment.tsx"},
+    {"id": "discovery-loop", "purpose": "Daily challenge, rubric result, reflection, next task", "owner": "frontend/src/components/DiscoveryLoop.tsx"},
+    {"id": "career-recommendations", "purpose": "Career/domain hypotheses and evidence comparison", "owner": "frontend/src/components/CareerRecommendations.tsx"},
+    {"id": "pathway-planner", "purpose": "Pathway actions, goal revision, plan history", "owner": "frontend/src/components/PathwayPlanner.tsx"},
+    {"id": "career-knowledge", "purpose": "Source provenance, graph status, taxonomy mappings and caveats", "owner": "frontend/src/App.tsx"},
+    {"id": "profile-settings", "purpose": "Review, correct, clear or delete profile data", "owner": "frontend/src/components/EvidenceLedger.tsx"}
+  ],
+  "primary_transitions": [
+    {"from": "top", "to": "evidence-ledger", "trigger": "Continue after reviewing a stateless calibration result; profile creation is a separate explicit consent action"},
+    {"from": "evidence-ledger", "to": "baseline-assessment", "trigger": "Create a profile with age-appropriate consent confirmation, then continue"},
+    {"from": "baseline-assessment", "to": "discovery-loop", "trigger": "Submit or skip baseline prompts; unknown domains stay unknown"},
+    {"from": "discovery-loop", "to": "career-recommendations", "trigger": "Activity submission saves rubric evidence and student reflection; next challenge is recalculated"},
+    {"from": "career-recommendations", "to": "pathway-planner", "trigger": "Review provisional hypotheses and choose a goal or question"},
+    {"from": "pathway-planner", "to": "career-knowledge", "trigger": "Inspect linked source records or knowledge-graph limitations"},
+    {"from": "evidence-ledger", "to": "profile-settings", "trigger": "Use profile review, correction, evidence deletion or profile deletion controls"}
+  ],
+  "states": [
+    "first_visit_no_profile",
+    "consent_not_confirmed",
+    "calibration_loading",
+    "api_unavailable",
+    "baseline_not_started",
+    "baseline_in_progress",
+    "baseline_submitted",
+    "profile_loading",
+    "profile_load_error",
+    "evidence_empty_or_unknown",
+    "challenge_ready",
+    "challenge_submitting",
+    "challenge_saved",
+    "recommendations_loading",
+    "source_graph_not_built",
+    "source_graph_stale",
+    "source_graph_offline",
+    "conflicting_or_mixed_evidence",
+    "pathway_plan_missing",
+    "pathway_plan_saved",
+    "profile_data_settings"
+  ],
+  "invariants": [
+    "No under-18 profile is persisted unless the user confirms appropriate guardian consent was obtained; prototype confirmation is not independently verified.",
+    "Calibration is a stateless preview and does not create a profile.",
+    "Baseline is explicitly exploratory and not a validated psychometric instrument.",
+    "Skipped or absent evidence is unknown, not zero.",
+    "No career hypothesis is described as an ability score or success probability.",
+    "Source graph unavailability must not fabricate occupational facts or prevent profile and challenge use.",
+    "Conflicting evidence is disclosed as mixed/uncertain and can trigger further exploration; the system does not silently resolve disagreement.",
+    "Profile correction/deletion controls remain discoverable from the navigation without developer tools.",
+    "The daily demo path should require only profile consent, a short baseline if desired, one challenge, reflection, and one next recommendation."
+  ]
+}
