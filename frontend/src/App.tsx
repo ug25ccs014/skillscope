@@ -3,6 +3,7 @@ import SiteLayout from './layout/SiteLayout';
 import HomePage from './pages/HomePage';
 import StartPage from './pages/StartPage';
 import SourcesPage from './pages/SourcesPage';
+import LoginPage from './pages/LoginPage';
 import { ProfilePage, ChallengesPage, CareersPage, PlanPage } from './pages/FlowPages';
 import { toHref, useRoute } from './router';
 
@@ -24,6 +25,7 @@ const pages: Record<string, ComponentType> = {
   '/careers': CareersPage,
   '/plan': PlanPage,
   '/sources': SourcesPage,
+  '/login': LoginPage,
 };
 
 export default function App() {

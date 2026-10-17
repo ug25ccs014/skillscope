@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export type RouteInfo = { path: string; label: string; title: string };
+export type RouteInfo = { path: string; label: string; title: string; hideInNav?: boolean };
 
 /** Pages of the site, in journey order. Hash routing keeps the app a static site with no server rewrites. */
 export const routes: RouteInfo[] = [
@@ -11,6 +11,7 @@ export const routes: RouteInfo[] = [
   { path: '/careers', label: 'Careers', title: 'Career possibilities' },
   { path: '/plan', label: 'Plan', title: 'Your pathway plan' },
   { path: '/sources', label: 'Sources & privacy', title: 'Sources and privacy' },
+  { path: '/login', label: 'Log in', title: 'Log in', hideInNav: true },
 ];
 
 export const toHref = (path: string) => `#${path}`;
