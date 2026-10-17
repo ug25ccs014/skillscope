@@ -1,0 +1,11 @@
+{
+  "asset_id": "onet_occupation_data",
+  "attempt_number": 1,
+  "error": "ConnectError: [Errno -3] Temporary failure in name resolution",
+  "finished_at": "2026-10-17T06:43:30Z",
+  "next_action": "Retry from a network-enabled development environment; keep the source not_integrated until import succeeds.",
+  "source_id": "onet_database",
+  "source_url": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/occupation_data.csv",
+  "started_at": "2026-10-17T06:43:30Z",
+  "status": "download_failed"
+}

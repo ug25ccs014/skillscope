@@ -1,0 +1,1 @@
+"""SkillScope FastAPI application package."""

@@ -1,0 +1,30 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node / frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local databases and source dumps
+*.sqlite
+*.sqlite3
+*.db
+data/raw/
+data/cache/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.zip

@@ -1,0 +1,25 @@
+{
+  "contract_version": "1.0.0",
+  "assessment_version": "baseline-exploratory-v1.0",
+  "status": "exploratory_original_item_set",
+  "validated_psychometric_instrument": false,
+  "produces_aptitude_score": false,
+  "produces_career_fit_score": false,
+  "age_modes": {
+    "10_14": "discover_and_shape",
+    "15_17": "explore_and_validate",
+    "18_plus": "develop_and_optimize"
+  },
+  "domains": [
+    "logic_data", "science_research", "technology", "design_creative",
+    "communication", "helping_social", "business", "hands_on_spatial", "environment"
+  ],
+  "rules": [
+    "Users may skip every item.",
+    "Missing or skipped evidence is unknown, never zero ability.",
+    "Self-report and mini-activity evidence remain separate source types.",
+    "Mini-activity observations use the Stage 8 rubric contract and preserve the original rubric version.",
+    "Baseline observations are hypotheses to validate through later challenges, not final career conclusions.",
+    "No third-party standardized questionnaire is copied into this item set."
+  ]
+}

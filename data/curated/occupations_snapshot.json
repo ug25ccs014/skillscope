@@ -1,0 +1,522 @@
+{
+  "schema_version": 1,
+  "snapshot_id": "skillscope-curated-occupation-profiles-2026-10-17",
+  "snapshot_type": "curated_extract",
+  "curated_at": "2026-10-17T07:49:37Z",
+  "curated_by": "SkillScope project authors; concise paraphrases manually curated from reviewed official O*NET OnLine and ESCO profile pages",
+  "runtime_fetch_performed": false,
+  "runtime_fetch_note": "Curated records were manually reviewed from official source pages through research access. The project runtime did not download a bulk O*NET dataset or an ESCO package/API response; these are static extracts, not live or complete datasets.",
+  "records": [
+    {
+      "source_id": "onet_online_curated_sample",
+      "source_record_id": "15-1252.00",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "record_uri": "https://www.onetonline.org/link/summary/15-1252.00",
+      "source_title": "Software Developers",
+      "source_code": "15-1252.00",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T06:32:46Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract excludes wage/employment fields and other clearly third-party content.",
+      "source_values": {
+        "title": "Software Developers",
+        "occupation_code": "15-1252.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "summary": "Design, build, test and maintain software systems and programs in response to user needs and technical requirements.",
+      "selected_tasks": [
+        "Review user needs and software requirements before design.",
+        "Develop, test or document software and related systems.",
+        "Debug or improve existing programs and interfaces."
+      ],
+      "transformation_notes": [
+        "The summary and task descriptions are concise SkillScope paraphrases of the cited O*NET OnLine profile, not verbatim excerpts.",
+        "No wage, employment, growth, or job-opening figures were copied into this extract.",
+        "curation_domain is a SkillScope editorial coverage tag, not an O*NET classification, assessment result, or claim about student capability.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download.",
+        "Source profile page is subject to updates; verify the page before production use.",
+        "O*NET OnLine third-party content exceptions are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_terms": [
+        "Working with Computers",
+        "Processing Information",
+        "Making Decisions and Solving Problems",
+        "Thinking Creatively"
+      ],
+      "curation_domain": "technology",
+      "selected_essential_skills": [
+        "Critical Thinking",
+        "Active Learning",
+        "Reading Comprehension",
+        "Active Listening",
+        "Writing"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "source_record_id": "15-2051.00",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "record_uri": "https://www.onetonline.org/link/summary/15-2051.00",
+      "source_title": "Data Scientists",
+      "source_code": "15-2051.00",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T06:32:46Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract excludes wage/employment fields and other clearly third-party content.",
+      "source_values": {
+        "title": "Data Scientists",
+        "occupation_code": "15-2051.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "summary": "Apply statistics, programming, data modelling and visualisation to extract useful information from structured and unstructured datasets.",
+      "selected_tasks": [
+        "Process large datasets using statistical software.",
+        "Create visual explanations of analytical results.",
+        "Test and refine models to check the reliability of predictions.",
+        "Communicate analytical findings to stakeholders."
+      ],
+      "transformation_notes": [
+        "The summary and task descriptions are concise SkillScope paraphrases of the cited O*NET OnLine profile, not verbatim excerpts.",
+        "No wage, employment, growth, or job-opening figures were copied into this extract.",
+        "curation_domain is a SkillScope editorial coverage tag, not an O*NET classification, assessment result, or claim about student capability.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download.",
+        "Source profile page is subject to updates; verify the page before production use.",
+        "O*NET OnLine third-party content exceptions are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_terms": [
+        "Analyzing Data or Information",
+        "Processing Information",
+        "Thinking Creatively",
+        "Communicating with Supervisors, Peers, or Subordinates"
+      ],
+      "curation_domain": "data_analytics",
+      "selected_essential_skills": [
+        "Mathematics",
+        "Critical Thinking",
+        "Reading Comprehension",
+        "Active Learning",
+        "Speaking"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "source_record_id": "27-1024.00",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "record_uri": "https://www.onetonline.org/link/summary/27-1024.00",
+      "source_title": "Graphic Designers",
+      "source_code": "27-1024.00",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T06:32:46Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract excludes wage/employment fields and other clearly third-party content.",
+      "source_values": {
+        "title": "Graphic Designers",
+        "occupation_code": "27-1024.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "summary": "Create visual layouts and graphics for commercial or promotional needs, balancing visual communication, composition and audience requirements.",
+      "selected_tasks": [
+        "Develop layouts and graphics for products, logos and websites.",
+        "Choose the size and arrangement of visual material and typography.",
+        "Review finished layouts and recommend improvements."
+      ],
+      "transformation_notes": [
+        "The summary and task descriptions are concise SkillScope paraphrases of the cited O*NET OnLine profile, not verbatim excerpts.",
+        "No wage, employment, growth, or job-opening figures were copied into this extract.",
+        "curation_domain is a SkillScope editorial coverage tag, not an O*NET classification, assessment result, or claim about student capability.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download.",
+        "Source profile page is subject to updates; verify the page before production use.",
+        "O*NET OnLine third-party content exceptions are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_terms": [
+        "Thinking Creatively",
+        "Working with Computers",
+        "Getting Information",
+        "Communicating with Supervisors, Peers, or Subordinates"
+      ],
+      "curation_domain": "creative_design",
+      "selected_essential_skills": [
+        "Active Listening",
+        "Speaking",
+        "Active Learning",
+        "Critical Thinking",
+        "Writing"
+      ]
+    },
+    {
+      "source_id": "esco_curated_sample",
+      "source_record_id": "http://data.europa.eu/esco/occupation/f2b15a0e-e65a-438a-affb-29b9d50b77d1",
+      "publisher": "European Commission, Directorate-General for Employment, Social Affairs and Inclusion",
+      "source_base_uri": "https://esco.ec.europa.eu/",
+      "record_uri": "https://esco.ec.europa.eu/en/classification/occupation?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Foccupation%2Ff2b15a0e-e65a-438a-affb-29b9d50b77d1",
+      "source_title": "software developer",
+      "source_code": "2512.4",
+      "source_version": "ESCO v1.2.1; classification page reports last update 2025-12-10; curated extract captured 2026-10-17",
+      "release_date": "2025-12-10",
+      "geography": "European Union classification context",
+      "source_accessed_at": "2026-10-17T06:32:46Z",
+      "license_reference": "https://esco.ec.europa.eu/en/about-esco/faq?page=1",
+      "license_summary": "ESCO classification may be reused under the European Commission document reuse framework; applications integrating ESCO must acknowledge the European Commission classification, and adaptations must be clearly indicated.",
+      "source_values": {
+        "title": "software developer",
+        "esco_code": "2512.4",
+        "concept_uri": "http://data.europa.eu/esco/occupation/f2b15a0e-e65a-438a-affb-29b9d50b77d1",
+        "concept_status": "released"
+      },
+      "summary": "Build software systems from specifications and designs using programming languages, tools and platforms.",
+      "selected_tasks": [
+        "Analyse software specifications.",
+        "Debug software.",
+        "Define technical requirements.",
+        "Develop software prototypes.",
+        "Use software libraries."
+      ],
+      "transformation_notes": [
+        "The summary is a concise SkillScope paraphrase of the cited ESCO occupation profile.",
+        "Short skill/action terms are selected from the official profile and retained as source terms.",
+        "This record is a curated extract of one released ESCO concept, not a bulk ESCO dataset import.",
+        "The ESCO occupation URI is preserved unchanged as its original source identifier.",
+        "curation_domain is a SkillScope editorial coverage tag, not an ESCO classification, assessment result, or claim about student capability."
+      ],
+      "limitations": [
+        "European occupational classification; it does not establish Indian hiring demand, salary, or regulated qualification requirements.",
+        "Small manually curated extract, not a complete ESCO export.",
+        "The official portal warns that data may not always be complete or current; verify before production use.",
+        "This record is not asserted to be equivalent to the O*NET Software Developers occupation."
+      ],
+      "selected_terms": [],
+      "curation_domain": "technology",
+      "selected_essential_skills": []
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T07:49:37Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract uses concise paraphrases and excludes wage/employment fields and known third-party content.",
+      "source_record_id": "13-1161.00",
+      "record_uri": "https://www.onetonline.org/link/summary/13-1161.00",
+      "source_title": "Market Research Analysts and Marketing Specialists",
+      "source_code": "13-1161.00",
+      "source_values": {
+        "title": "Market Research Analysts and Marketing Specialists",
+        "occupation_code": "13-1161.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "curation_domain": "business_marketing",
+      "summary": "Study market conditions and customer behaviour to inform product, service, sales and marketing decisions.",
+      "selected_tasks": [
+        "Compile research findings into reports, charts and clear written explanations.",
+        "Study consumer opinions, product demand and marketing approaches.",
+        "Analyze customer profiles, preferences and purchasing patterns.",
+        "Compare competitors’ prices, sales and distribution methods.",
+        "Design or evaluate information-gathering methods such as surveys and questionnaires."
+      ],
+      "selected_terms": [],
+      "transformation_notes": [
+        "The summary and selected task descriptions are concise SkillScope paraphrases based on the cited official O*NET OnLine profile, not verbatim excerpts or complete task lists.",
+        "No worker skill ratings, interest profiles, wages, employment statistics, growth estimates or job-opening figures were copied into this record.",
+        "curation_domain is a SkillScope editorial coverage tag added to ensure the demo covers varied occupational contexts; it is not an official O*NET category or a student signal.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download or live response.",
+        "Profile pages can change; review the cited official page before production use.",
+        "No individual aptitude, interest, career-fit or employability score is derived from this occupation record.",
+        "Known third-party content and wage/employment figures are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_essential_skills": [
+        "Active Listening",
+        "Critical Thinking",
+        "Reading Comprehension",
+        "Writing",
+        "Speaking"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T07:49:37Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract uses concise paraphrases and excludes wage/employment fields and known third-party content.",
+      "source_record_id": "21-1093.00",
+      "record_uri": "https://www.onetonline.org/link/summary/21-1093.00",
+      "source_title": "Social and Human Service Assistants",
+      "source_code": "21-1093.00",
+      "source_values": {
+        "title": "Social and Human Service Assistants",
+        "occupation_code": "21-1093.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "curation_domain": "social_support",
+      "summary": "Support social-service professionals by helping coordinate client services, explain available assistance and connect people with community resources.",
+      "selected_tasks": [
+        "Help service providers coordinate support for individuals and families.",
+        "Assist with preparing and carrying out client support or care plans under appropriate supervision.",
+        "Refer individuals to relevant public, private or community services.",
+        "Maintain records of service contacts and prepare required reports.",
+        "Explain service options, procedures and eligibility requirements to individuals or families."
+      ],
+      "selected_terms": [],
+      "transformation_notes": [
+        "The summary and selected task descriptions are concise SkillScope paraphrases based on the cited official O*NET OnLine profile, not verbatim excerpts or complete task lists.",
+        "No worker skill ratings, interest profiles, wages, employment statistics, growth estimates or job-opening figures were copied into this record.",
+        "curation_domain is a SkillScope editorial coverage tag added to ensure the demo covers varied occupational contexts; it is not an official O*NET category or a student signal.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download or live response.",
+        "Profile pages can change; review the cited official page before production use.",
+        "No individual aptitude, interest, career-fit or employability score is derived from this occupation record.",
+        "Known third-party content and wage/employment figures are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_essential_skills": [
+        "Active Listening",
+        "Speaking",
+        "Reading Comprehension",
+        "Critical Thinking",
+        "Monitoring"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T07:49:37Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract uses concise paraphrases and excludes wage/employment fields and known third-party content.",
+      "source_record_id": "47-2231.00",
+      "record_uri": "https://www.onetonline.org/link/summary/47-2231.00",
+      "source_title": "Solar Photovoltaic Installers",
+      "source_code": "47-2231.00",
+      "source_values": {
+        "title": "Solar Photovoltaic Installers",
+        "occupation_code": "47-2231.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "curation_domain": "hands_on_environmental_technology",
+      "summary": "Assemble, install, inspect and maintain solar photovoltaic systems using site conditions, technical drawings and applicable safety requirements.",
+      "selected_tasks": [
+        "Plan array placement using site layout, orientation and structural conditions.",
+        "Assemble solar modules and their support structures.",
+        "Inspect wiring, polarity, grounding and electrical connections.",
+        "Check operating measurements and confirm basic system function.",
+        "Identify safety hazards or installation defects and arrange corrections."
+      ],
+      "selected_terms": [],
+      "transformation_notes": [
+        "The summary and selected task descriptions are concise SkillScope paraphrases based on the cited official O*NET OnLine profile, not verbatim excerpts or complete task lists.",
+        "No worker skill ratings, interest profiles, wages, employment statistics, growth estimates or job-opening figures were copied into this record.",
+        "curation_domain is a SkillScope editorial coverage tag added to ensure the demo covers varied occupational contexts; it is not an official O*NET category or a student signal.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download or live response.",
+        "Profile pages can change; review the cited official page before production use.",
+        "No individual aptitude, interest, career-fit or employability score is derived from this occupation record.",
+        "Known third-party content and wage/employment figures are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_essential_skills": [
+        "Critical Thinking",
+        "Active Listening",
+        "Monitoring",
+        "Active Learning",
+        "Reading Comprehension"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T07:49:37Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract uses concise paraphrases and excludes wage/employment fields and known third-party content.",
+      "source_record_id": "19-2041.00",
+      "record_uri": "https://www.onetonline.org/link/summary/19-2041.00",
+      "source_title": "Environmental Scientists and Specialists, Including Health",
+      "source_code": "19-2041.00",
+      "source_values": {
+        "title": "Environmental Scientists and Specialists, Including Health",
+        "occupation_code": "19-2041.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "curation_domain": "environmental_science",
+      "summary": "Investigate environmental or public-health hazards through scientific observations and measurements, then interpret evidence and recommend responses.",
+      "selected_tasks": [
+        "Collect, analyze and report environmental measurements or sample data.",
+        "Investigate pollution or land-degradation sources and potential effects.",
+        "Review activities against relevant environmental standards and requirements.",
+        "Communicate findings to technical teams, agencies, organizations or the public.",
+        "Prepare charts or summaries explaining the environmental significance of data."
+      ],
+      "selected_terms": [],
+      "transformation_notes": [
+        "The summary and selected task descriptions are concise SkillScope paraphrases based on the cited official O*NET OnLine profile, not verbatim excerpts or complete task lists.",
+        "No worker skill ratings, interest profiles, wages, employment statistics, growth estimates or job-opening figures were copied into this record.",
+        "curation_domain is a SkillScope editorial coverage tag added to ensure the demo covers varied occupational contexts; it is not an official O*NET category or a student signal.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download or live response.",
+        "Profile pages can change; review the cited official page before production use.",
+        "No individual aptitude, interest, career-fit or employability score is derived from this occupation record.",
+        "Known third-party content and wage/employment figures are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_essential_skills": [
+        "Active Listening",
+        "Reading Comprehension",
+        "Science",
+        "Speaking",
+        "Writing"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T07:49:37Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract uses concise paraphrases and excludes wage/employment fields and known third-party content.",
+      "source_record_id": "13-1082.00",
+      "record_uri": "https://www.onetonline.org/link/summary/13-1082.00",
+      "source_title": "Project Management Specialists",
+      "source_code": "13-1082.00",
+      "source_values": {
+        "title": "Project Management Specialists",
+        "occupation_code": "13-1082.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "curation_domain": "business_coordination",
+      "summary": "Coordinate project scope, schedules, resources, staffing and budgets while helping teams deliver agreed outputs to quality expectations.",
+      "selected_tasks": [
+        "Clarify project requirements and objectives with key stakeholders.",
+        "Identify staffing, resources and budget needs from project goals and schedules.",
+        "Plan and coordinate activities against deadlines and milestones.",
+        "Work with project personnel to identify and resolve delivery problems.",
+        "Review deliverables against agreed quality standards and report progress."
+      ],
+      "selected_terms": [],
+      "transformation_notes": [
+        "The summary and selected task descriptions are concise SkillScope paraphrases based on the cited official O*NET OnLine profile, not verbatim excerpts or complete task lists.",
+        "No worker skill ratings, interest profiles, wages, employment statistics, growth estimates or job-opening figures were copied into this record.",
+        "curation_domain is a SkillScope editorial coverage tag added to ensure the demo covers varied occupational contexts; it is not an official O*NET category or a student signal.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download or live response.",
+        "Profile pages can change; review the cited official page before production use.",
+        "No individual aptitude, interest, career-fit or employability score is derived from this occupation record.",
+        "Known third-party content and wage/employment figures are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_essential_skills": [
+        "Active Listening",
+        "Critical Thinking",
+        "Monitoring",
+        "Writing",
+        "Active Learning"
+      ]
+    },
+    {
+      "source_id": "onet_online_curated_sample",
+      "publisher": "U.S. Department of Labor, Employment and Training Administration (USDOL/ETA); National Center for O*NET Development",
+      "source_base_uri": "https://www.onetonline.org/",
+      "source_version": "O*NET OnLine profile; page marked Updated 2026; curated extract captured 2026-10-17",
+      "release_date": "2026",
+      "geography": "United States",
+      "source_accessed_at": "2026-10-17T07:49:37Z",
+      "license_reference": "https://www.onetonline.org/help/license",
+      "license_summary": "O*NET OnLine content is CC BY 4.0 except listed third-party content. Credit USDOL/ETA, link the licence, and disclose modifications. This extract uses concise paraphrases and excludes wage/employment fields and known third-party content.",
+      "source_record_id": "17-3023.00",
+      "record_uri": "https://www.onetonline.org/link/summary/17-3023.00",
+      "source_title": "Electrical and Electronic Engineering Technologists and Technicians",
+      "source_code": "17-3023.00",
+      "source_values": {
+        "title": "Electrical and Electronic Engineering Technologists and Technicians",
+        "occupation_code": "17-3023.00",
+        "source_page_update_label": "Updated 2026"
+      },
+      "curation_domain": "hands_on_engineering",
+      "summary": "Apply electrical and electronic engineering principles to help build, test, adjust, maintain and repair components, circuits, controls and equipment.",
+      "selected_tasks": [
+        "Read engineering drawings, wiring diagrams and technical instructions.",
+        "Assemble, test or maintain circuits and electronic components.",
+        "Use test instruments to diagnose equipment or component performance.",
+        "Repair or modify electrical and electronic equipment and systems.",
+        "Document tests, equipment operation, maintenance and corrective actions."
+      ],
+      "selected_terms": [],
+      "transformation_notes": [
+        "The summary and selected task descriptions are concise SkillScope paraphrases based on the cited official O*NET OnLine profile, not verbatim excerpts or complete task lists.",
+        "No worker skill ratings, interest profiles, wages, employment statistics, growth estimates or job-opening figures were copied into this record.",
+        "curation_domain is a SkillScope editorial coverage tag added to ensure the demo covers varied occupational contexts; it is not an official O*NET category or a student signal.",
+        "The selected_essential_skills list contains short labels shown under the O*NET OnLine profile’s “Essential Skills” section; original section/category is preserved, but source skill element IDs and occupation-specific numeric ratings are not included in this curated extract."
+      ],
+      "limitations": [
+        "United States occupational reference; not evidence of Indian hiring demand or local qualification requirements.",
+        "Small manually curated extract, not a complete O*NET database download or live response.",
+        "Profile pages can change; review the cited official page before production use.",
+        "No individual aptitude, interest, career-fit or employability score is derived from this occupation record.",
+        "Known third-party content and wage/employment figures are excluded from this curated extract.",
+        "Essential-skill labels are source-listed occupational references, not weights, scores, individual aptitudes, or evidence that a particular student possesses these skills."
+      ],
+      "selected_essential_skills": [
+        "Reading Comprehension",
+        "Critical Thinking",
+        "Active Listening",
+        "Speaking",
+        "Monitoring"
+      ]
+    }
+  ]
+}

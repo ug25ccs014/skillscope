@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  background: #f7f9fc;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; }
+/* Lenis (smooth scroll) needs native smooth scrolling off while it is active */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, a { -webkit-tap-highlight-color: transparent; }
+::selection { background: #d8f3ee; color: #12243a; }
+
+/* ---------- Motion graphics (Stage 15) ----------
+   All animation is decorative. Real content is always in the DOM, and every
+   effect below is disabled under prefers-reduced-motion. */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.7,.2,1); }
+.reveal.reveal-in { opacity: 1; transform: none; }
+
+.gauge-seg { overflow: hidden; }
+.gauge-fill { width: 0; transition: width 520ms cubic-bezier(.2,.7,.2,1); }
+.gauge-fill.gauge-fill-on { width: 100%; }
+
+.compass-needle { transition: transform 1100ms cubic-bezier(.34,1.56,.64,1); }
+
+@keyframes bus-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+@keyframes wheel-spin { to { transform: rotate(360deg); } }
+@keyframes door-open { 0%,12% { transform: scaleX(1); } 30%,85% { transform: scaleX(6); } 100% { transform: scaleX(1); } }
+@keyframes hop-out { 0% { transform: translate(0,0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(var(--hx), 22px); opacity: 0; } }
+@keyframes stop-pulse { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(1.7); opacity: 0; } }
+
+.bus-moving { animation: bus-bob 420ms ease-in-out infinite; }
+.bus-moving .bus-wheel { animation: wheel-spin 600ms linear infinite; }
+.bus-halted .bus-door { transform-box: fill-box; transform-origin: left center; animation: door-open 2000ms ease-in-out 1; }
+.passenger { transform-box: fill-box; opacity: 0; animation: hop-out 1500ms ease-out 500ms 1 forwards; }
+.passenger.p1 { --hx: -14px; }
+.passenger.p2 { --hx: 12px; animation-delay: 750ms; }
+.stop-pulse { transform-box: fill-box; transform-origin: center; animation: stop-pulse 1400ms ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .gauge-fill, .compass-needle { transition: none; }
+  .bus-moving, .bus-moving .bus-wheel, .bus-halted .bus-door, .passenger, .stop-pulse { animation: none; }
+  .passenger { opacity: 0; }
+}
+
+/* ---------- Page structure ---------- */
+.page-body > section:first-child { border-top-width: 0; }
+@keyframes page-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.page-enter { animation: page-enter 380ms cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } }
+
+
+/* ---------- Motion tokens (M0) ---------- */
+:root {
+  --dur-fast: 160ms;
+  --dur-base: 320ms;
+  --dur-slow: 700ms;
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --ease-precise: cubic-bezier(.65, 0, .35, 1);
+  --float-dur: 28s;
+}
+
+/* ---------- Mode themes (M1/M2): colours cross-fade when the mode changes ---------- */
+@property --mode-a { syntax: '<color>'; inherits: true; initial-value: #4FD1C5; }
+@property --mode-b { syntax: '<color>'; inherits: true; initial-value: #5BC0EB; }
+@property --mode-c { syntax: '<color>'; inherits: true; initial-value: #9AA5FF; }
+@property --mode-bg1 { syntax: '<color>'; inherits: true; initial-value: #12243A; }
+@property --mode-bg2 { syntax: '<color>'; inherits: true; initial-value: #16384A; }
+@property --mode-accent { syntax: '<color>'; inherits: true; initial-value: #6FE3D4; }
+
+:root {
+  --mode-a: #4FD1C5; --mode-b: #5BC0EB; --mode-c: #9AA5FF;
+  --mode-bg1: #12243A; --mode-bg2: #16384A; --mode-accent: #6FE3D4;
+  transition: --mode-a var(--dur-slow) ease, --mode-b var(--dur-slow) ease, --mode-c var(--dur-slow) ease,
+    --mode-bg1 var(--dur-slow) ease, --mode-bg2 var(--dur-slow) ease, --mode-accent var(--dur-slow) ease;
+}
+html[data-mode='discover'] { --mode-a: #FFB36B; --mode-b: #FF8E7A; --mode-c: #7FDCCF; --mode-bg1: #2A2447; --mode-bg2: #3F2C4D; --mode-accent: #FFC98A; --float-dur: 44s; }
+html[data-mode='explore'] { --mode-a: #4FD1C5; --mode-b: #5BC0EB; --mode-c: #9AA5FF; --mode-bg1: #12243A; --mode-bg2: #16384A; --mode-accent: #6FE3D4; --float-dur: 30s; }
+html[data-mode='develop'] { --mode-a: #7C8CFF; --mode-b: #2DD4BF; --mode-c: #A5B4FC; --mode-bg1: #0B1530; --mode-bg2: #1B1F4D; --mode-accent: #A9B6FF; --float-dur: 20s; }
+
+/* ---------- Living backdrop (decorative) ---------- */
+.backdrop-glow { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .28; will-change: transform; }
+.backdrop-glow-a { width: 34rem; height: 34rem; right: -10rem; top: -12rem; background: radial-gradient(circle, var(--mode-a), transparent 68%); animation: drift-a var(--float-dur) ease-in-out infinite; }
+.backdrop-glow-b { width: 28rem; height: 28rem; left: -9rem; top: 38%; background: radial-gradient(circle, var(--mode-c), transparent 68%); animation: drift-b var(--float-dur) ease-in-out infinite; }
+.backdrop-glow-c { width: 24rem; height: 24rem; right: 12%; bottom: -10rem; background: radial-gradient(circle, var(--mode-b), transparent 68%); opacity: .2; animation: drift-a calc(var(--float-dur) * 1.3) ease-in-out infinite reverse; }
+@keyframes drift-a { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(-5%, 7%, 0) scale(1.08); } }
+@keyframes drift-b { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(7%, -6%, 0) scale(1.06); } }
+
+/* ---------- Hero stage ---------- */
+.hero-stage { background: radial-gradient(120% 90% at 85% 0%, color-mix(in srgb, var(--mode-a) 32%, transparent), transparent 60%), radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--mode-c) 26%, transparent), transparent 62%), linear-gradient(135deg, var(--mode-bg1), var(--mode-bg2)); }
+.hero-vignette { background: linear-gradient(90deg, rgba(8, 16, 30, .55) 0%, rgba(8, 16, 30, .15) 55%, transparent 100%); }
+@media (max-width: 640px) { .hero-vignette { background: rgba(8, 16, 30, .45); } }
+
+/* ---------- Tilting cards (CSS perspective only) ---------- */
+.tilt-scene { perspective: 900px; }
+.tilt-card { position: relative; overflow: hidden; --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%; transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d; transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.tilt-shine { pointer-events: none; position: absolute; inset: 0; opacity: 0; background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, .55), transparent 45%); transition: opacity var(--dur-base) ease; mix-blend-mode: soft-light; }
+.tilt-scene:hover .tilt-shine { opacity: 1; }
+@media (hover: none), (pointer: coarse) { .mode-card-label:active .tilt-card { transform: scale(.98); } }
+
+/* ---------- Journey strip + illustrated empty states ---------- */
+.hatch { background-image: repeating-linear-gradient(135deg, rgba(100, 116, 139, .18) 0 6px, transparent 6px 12px); }
+@keyframes float-soft { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.float-soft { animation: float-soft 6s ease-in-out infinite; }
+.dash-flow { stroke-dasharray: 4 6; animation: dash-flow 2.4s linear infinite; }
+@keyframes dash-flow { to { stroke-dashoffset: -20; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-glow, .float-soft, .dash-flow { animation: none; }
+  .tilt-card { transition: none; transform: none; }
+  :root { transition: none; }
+}
+
+.cta-band { background: radial-gradient(90% 140% at 100% 0%, color-mix(in srgb, var(--mode-a) 35%, transparent), transparent 60%), linear-gradient(135deg, var(--mode-bg1), var(--mode-bg2)); }
+
+/* ---------- Flip cards (M3) ---------- */
+.flip-scene { perspective: 1100px; }
+.flip-inner { display: grid; transform-style: preserve-3d; transition: transform 650ms var(--ease-out); cursor: pointer; }
+.flip-inner.flip-on { transform: rotateY(180deg); }
+.flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-back { transform: rotateY(180deg); }
+.flip-reduced .flip-inner { transition: none; transform: none; }
+.flip-reduced .flip-back { transform: none; }
+.flip-reduced .flip-face[data-hidden='true'] { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .flip-inner { transition: none; transform: none; }
+  .flip-back { transform: none; }
+  .flip-face[data-hidden='true'] { visibility: hidden; }
+}

@@ -1,0 +1,78 @@
+{
+  "contract_version": "1.0.0",
+  "summary_policy_version": "evidence-summary-v1.0",
+  "consent_notice_version": "student-evidence-v1.0",
+  "age_bands": {
+    "10_14": {
+      "required_consent_basis": "guardian_confirmed"
+    },
+    "15_17": {
+      "required_consent_basis": "guardian_confirmed"
+    },
+    "18_plus": {
+      "required_consent_basis": "student_confirmed"
+    }
+  },
+  "evidence_types": [
+    "stated_interest_goal",
+    "activity_reflection",
+    "challenge_performance",
+    "effort_difficulty",
+    "project_portfolio",
+    "academic_experience",
+    "repeated_in_product_behavior"
+  ],
+  "signal_dimensions": [
+    "interest",
+    "demonstrated_performance",
+    "experience_exposure",
+    "learning_progress",
+    "goal_preference",
+    "practical_readiness",
+    "effort_difficulty"
+  ],
+  "source_kinds": [
+    "self_report",
+    "challenge_result",
+    "user_added_project",
+    "academic_self_report",
+    "in_product_behavior"
+  ],
+  "uncertainty_levels": [
+    "low",
+    "medium",
+    "high",
+    "not_assessed"
+  ],
+  "user_interpretations": [
+    "supports_current_hypothesis",
+    "challenges_current_hypothesis",
+    "contextual_or_mixed",
+    "not_interpreted"
+  ],
+  "recency_policy_days": {
+    "recent_max_inclusive": 30,
+    "developing_max_inclusive": 90,
+    "older_min_inclusive": 91,
+    "basis": "observed_at; labels age only, not confidence or importance"
+  },
+  "summary_statuses": {
+    "unknown": "No evidence recorded; must never be interpreted as zero ability or low interest.",
+    "evidence_available": "One or more records exist; no numeric signal score is generated.",
+    "mixed": "User-labelled supporting and challenging records both exist; preserve as an open question."
+  },
+  "hard_rules": [
+    "Every personal evidence record belongs to one student profile and preserves source kind, observed time, recorded time, uncertainty and capture-time consent metadata.",
+    "A profile under age 18 requires recorded guardian-consent confirmation; the MVP does not verify the person confirming consent.",
+    "Each repeated in-product behavior item requires its own explicit confirmation and non-empty activity_name/time_window context.",
+    "Repeated behavior must not be inferred from monitoring unrelated apps, websites or devices.",
+    "Challenge performance requires a challenge label, rubric name and criterion-level observation.",
+    "A numeric rubric score requires its own explicit score_scale; scores from different rubrics must not be normalized or compared by default.",
+    "Profile goal changes are timestamped ledger events; updating the current profile goal must not erase prior goal evidence.",
+    "No single unexplained ability, aptitude, personality or career-fit score may be calculated from the evidence ledger.",
+    "Users can correct stated information and permanently delete individual records, all evidence, or the whole profile and linked history.",
+    "The unauthenticated demo API must not be publicly deployed with real student or minor data.",
+    "Crossing the under-18/adult consent boundary with existing evidence requires deleting and recreating the profile; historic consent metadata must not be retrospectively relabelled.",
+    "Clearing all evidence also clears the mutable current goal and self-reported context, leaving only the empty profile/consent shell."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "asset_id": "esco_public_api_probe",
+  "attempt_number": 1,
+  "error": "ConnectError: [Errno -3] Temporary failure in name resolution",
+  "finished_at": "2026-10-17T06:45:49Z",
+  "next_action": "Retry from a network-enabled development environment. ESCO bulk export is an official portal flow requiring package selection and an emailed download link; import the chosen package locally only after verifying its version and terms.",
+  "source_data_is_live": false,
+  "source_id": "esco_classification",
+  "source_url": "https://ec.europa.eu/esco/api/resource/occupation?selectedVersion=1.2.0&language=en&limit=1",
+  "started_at": "2026-10-17T06:45:49Z",
+  "status": "api_fetch_failed"
+}

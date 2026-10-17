@@ -1,0 +1,17 @@
+{
+  "policy_version": "career-domain-hypotheses-v1.0",
+  "classification": "skillscope_authored_hypotheses_not_official_taxonomy",
+  "notice": "These broad-domain associations are authored as exploration hints from the wording of the source-linked occupation profile. They are not official occupation classifications, skill equivalences, aptitude inferences, or requirements. Absence of an association is not a negative judgment.",
+  "mappings": [
+    {"taxonomy": "O*NET OnLine", "external_id": "15-2051.00", "occupation_label": "Data Scientists", "domains": ["logic_data", "science_research", "communication"], "basis": "Curated profile tasks discuss datasets, models and communicating analytical findings."},
+    {"taxonomy": "O*NET OnLine", "external_id": "17-3023.00", "occupation_label": "Electrical and Electronic Engineering Technologists and Technicians", "domains": ["technology", "hands_on_spatial", "science_research"], "basis": "Curated profile tasks discuss testing, maintaining and repairing electronic equipment and reading diagrams."},
+    {"taxonomy": "O*NET OnLine", "external_id": "19-2041.00", "occupation_label": "Environmental Scientists and Specialists, Including Health", "domains": ["environment", "science_research", "logic_data", "communication"], "basis": "Curated profile tasks discuss environmental measurements, investigation and reporting findings."},
+    {"taxonomy": "O*NET OnLine", "external_id": "27-1024.00", "occupation_label": "Graphic Designers", "domains": ["design_creative", "communication", "technology"], "basis": "Curated profile tasks discuss visual layouts, graphics, typography and revision."},
+    {"taxonomy": "O*NET OnLine", "external_id": "13-1161.00", "occupation_label": "Market Research Analysts and Marketing Specialists", "domains": ["business", "logic_data", "communication"], "basis": "Curated profile tasks discuss customer preferences, competitor comparison, surveys and reporting."},
+    {"taxonomy": "O*NET OnLine", "external_id": "13-1082.00", "occupation_label": "Project Management Specialists", "domains": ["business", "communication", "technology", "helping_social"], "basis": "Curated profile tasks discuss requirements, resources, coordination, milestones and stakeholder communication."},
+    {"taxonomy": "O*NET OnLine", "external_id": "21-1093.00", "occupation_label": "Social and Human Service Assistants", "domains": ["helping_social", "communication"], "basis": "Curated profile tasks discuss explaining service options and coordinating support under appropriate supervision."},
+    {"taxonomy": "ESCO", "external_id": "http://data.europa.eu/esco/occupation/f2b15a0e-e65a-438a-affb-29b9d50b77d1", "occupation_label": "software developer", "domains": ["technology", "logic_data"], "basis": "Curated ESCO extract contains software specifications, debugging and prototype-related work activities."},
+    {"taxonomy": "O*NET OnLine", "external_id": "15-1252.00", "occupation_label": "Software Developers", "domains": ["technology", "logic_data", "communication"], "basis": "Curated profile tasks discuss software development, testing, documentation and reviewing user needs."},
+    {"taxonomy": "O*NET OnLine", "external_id": "47-2231.00", "occupation_label": "Solar Photovoltaic Installers", "domains": ["hands_on_spatial", "technology", "environment"], "basis": "Curated profile tasks discuss assembling solar modules, checking system function and inspecting wiring."}
+  ]
+}

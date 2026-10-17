@@ -1,0 +1,50 @@
+{
+  "contract_version": "discovery-loop-contract-v1.0",
+  "policy_version": "discovery-loop-v1.0",
+  "status": "implemented_within_request_driven_prototype_scope",
+  "input_state": [
+    "consented_student_profile_age_band",
+    "student_current_goal_as_context_only",
+    "persisted_challenge_submissions",
+    "criterion_level_rubric_results",
+    "student_self_reported_interpretation",
+    "optional_enjoyment_difficulty_confidence_willingness_reflection",
+    "challenge_domain_exposure_counts",
+    "requested_loop_preference"
+  ],
+  "preferences": ["balanced", "explore", "develop", "validate", "alternative"],
+  "selection_invariants": [
+    "age_band_selects_the_age_scaled_variant",
+    "prefer_never_tried_challenge_families",
+    "after_library_exhaustion_avoid_three_most_recent_challenges_when_possible",
+    "explicit_student_report_of_conflict_tests_a_different_domain",
+    "mixed_or_contextual_report_can_trigger_same_domain_validation_with_a_different_challenge",
+    "positive_engagement_may_offer_a_different_activity_in_that_domain",
+    "no_evidence_for_development_preference_falls_back_to_exploration",
+    "stable_library_order_breaks_ties",
+    "same_persisted_inputs_policy_version_and_preference_produce_same_output"
+  ],
+  "forbidden_inferences": [
+    "aptitude_score",
+    "personality_or_clinical_label",
+    "career_fit_score",
+    "ability_from_missing_evidence",
+    "goal_domain_from_free_text_keywords",
+    "cross_challenge_rubric_score_ranking"
+  ],
+  "routes": {
+    "get_loop_state": "GET /api/discovery-loop/{profile_id}?preference=balanced",
+    "submit_challenge": "POST /api/challenges/{challenge_id}/submissions"
+  },
+  "persistence": {
+    "challenge_submission_and_evidence_same_sqlite_transaction": true,
+    "loop_state_recomputed_from_saved_history": true,
+    "reminders_or_push_notifications_implemented": false
+  },
+  "limitations": [
+    "request_driven_not_scheduled",
+    "unauthenticated_prototype_api",
+    "consent_self_attestation_not_verified",
+    "heuristic_policy_not_psychometrically_validated"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "contract_version": "career-pathway-action-plan-v1.0",
+  "algorithm_version": "career-pathway-action-plan-v1.0",
+  "status": "initial_explainable_heuristic_not_scientifically_validated",
+  "purpose": "Turn career hypotheses into age-aware, editable, persistent next steps without presenting a career verdict.",
+  "age_modes": {
+    "10_14": {
+      "mode": "discover_and_shape",
+      "pathway_labels": false,
+      "ranking": false,
+      "deadline_plan": false,
+      "actions_max": 1,
+      "focus": "One small safe exploration activity and a student-led reflection."
+    },
+    "15_17": {
+      "mode": "explore_and_validate",
+      "pathway_options_max": 3,
+      "deadline_plan": false,
+      "focus": "Compare a small group of evidence-linked hypotheses, unknowns, and validation projects."
+    },
+    "18_plus": {
+      "mode": "develop_and_optimize",
+      "pathway_options_max": 3,
+      "timebox_requires": [
+        "stated_target_goal",
+        "at_least_one_current_state_input_skills_education_or_experience",
+        "available_hours_per_week",
+        "desired_timeline"
+      ],
+      "focus": "Current-state documentation, evidence gaps, validation, project/portfolio action, and time-bounded milestones only when required inputs are provided."
+    }
+  },
+  "evidence_rules": [
+    "Missing evidence is unknown, not zero.",
+    "Undocumented skill labels are not student deficiencies or proficiency scores.",
+    "Source-listed work activities are not formal prerequisites.",
+    "Only source-linked requires_qualification relationships may be labelled source-backed prerequisites.",
+    "Career goal changes append historical stated-goal evidence and never erase prior evidence.",
+    "No salary, employment, admission, or career-success guarantees are generated."
+  ],
+  "persistence": {
+    "table": "pathway_plans",
+    "snapshot_immutable": true,
+    "delete_with_profile": true,
+    "history_endpoint": "GET /api/pathway-plans/{profile_id}/history"
+  },
+  "api": {
+    "generate": "POST /api/pathway-plans/{profile_id}/generate",
+    "latest": "GET /api/pathway-plans/{profile_id}",
+    "history": "GET /api/pathway-plans/{profile_id}/history?limit=20"
+  },
+  "limitations": [
+    "Initial heuristics are not scientifically optimized or outcome validated.",
+    "The bundled graph contains ten curated occupation identities and does not provide complete verified India-specific qualification pathways.",
+    "Plans are suggestions and require user revision and authoritative credential checks.",
+    "The API is unauthenticated and is not suitable for production use with real student/minor data."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "algorithm_version": "transparent-career-match-v1.0",
+  "status": "initial_heuristic_parameters_not_scientifically_optimized",
+  "description": "Versioned provisional weights for ordering source-backed career hypotheses. Not a probability, aptitude score, validated psychometric measure, or prediction of career success.",
+  "weights": {
+    "goal_language_overlap": 0.25,
+    "exact_skill_label_overlap": 0.25,
+    "challenge_domain_alignment": 0.25,
+    "repeated_activity_families": 0.15,
+    "portfolio_context_overlap": 0.10
+  },
+  "active_component_normalization": "Only components with usable input evidence contribute to ordering; absent input components are omitted and the remaining weights are renormalized. A non-match is not evidence of low ability or potential.",
+  "confidence_policy": {
+    "status": "qualitative_uncalibrated_heuristic",
+    "high_requires": [
+      "at least 6 profile observations relevant to the candidate",
+      "at least 3 distinct challenge families or user-provided project/portfolio records",
+      "at least 2 evidence source kinds or signal dimensions",
+      "relevant evidence within the last 90 days",
+      "no unresolved student-reported contradiction in the relevant evidence window",
+      "at least one reviewed or verified career source reference"
+    ],
+    "note": "Evidence confidence describes the quantity, diversity, recency, consistency and provenance of the available support. It is not confidence that the person will succeed in the career."
+  }
+}

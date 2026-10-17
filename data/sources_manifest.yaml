@@ -1,0 +1,256 @@
+# Stage 4 source register. This manifest documents decisions and access feasibility.
+# No external source is integrated until a permitted fetch/import is implemented and verified.
+manifest_version: 3
+project: SkillScope AI
+last_reviewed: '2026-10-17'
+manifest_status: curated_extract_imported_external_access_blocked
+policy:
+- Do not mark a source integrated unless application code or an imported data artifact actually uses it.
+- A public website being readable in research does not prove the application runtime can download the data or call
+  its API.
+- Keep source facts, cross-source mappings, user evidence, heuristics, and demo fixtures distinct.
+- Never use aggregate labour-market statistics to score an individual student.
+- Record the exact package version, retrieval date, licence/terms, source URL, and checksum at ingestion time.
+sources:
+- id: ncs_india
+  publisher: Directorate General of Employment, Ministry of Labour and Employment, Government of India
+  name: National Career Service (NCS)
+  official_url: https://www.ncs.gov.in/
+  terms_url: https://ncs.gov.in/terms&condition
+  geographic_scope: India
+  source_role: Primary Indian career-information reference; exact page links can support manually reviewed occupation
+    context.
+  selection: selected_link_only_reference
+  integration_status: not_integrated
+  planned_access_method: Link-only reference; do not scrape or cache page content until a permitted reuse route
+    is confirmed.
+  runtime_access_status: not_tested_from_application_runtime
+  source_page_review_status: official_portal_and_terms_page_reviewed_on_2026-10-17
+  version_or_release: Rolling website content; no versioned public data release or documented public API verified
+    during this review.
+  license_terms_status: The reviewed NCS Terms & Conditions page describes site disclaimers and governing law but
+    does not establish a blanket open-data licence for bulk reuse. This is not a conclusion that no other applicable
+    policy exists; review the exact page/document and obtain permission where needed.
+  attribution_and_changes: Link to the exact NCS career-information page and name NCS/DGE/Ministry as publisher
+    when referencing it. Do not locally reproduce material until terms for that material are confirmed.
+  limits:
+  - Website content may change without prior notice.
+  - No public machine-readable API or bulk-download package was verified from the reviewed pages.
+  - India-first relevance is useful, but individual NCS records still need an exact URL and currentness check.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://www.ncs.gov.in/
+  - https://ncs.gov.in/terms&condition
+- id: nsdc_india
+  publisher: National Skill Development Corporation (NSDC) and relevant Sector Skill Councils / recognized awarding
+    bodies
+  name: National Occupational Standards (NOS), Qualification Packs (QP), and model curriculum listings
+  official_url: https://www.nsdcindia.org/national-occupational-standards-and-model-curriculum
+  listing_url: https://nsdcindia.org/national-occupational-standards
+  geographic_scope: India
+  source_role: Indian occupational competency and vocational qualification cross-check for relevant job roles.
+  selection: selected_record_by_record_link_only_reference
+  integration_status: not_integrated
+  planned_access_method: Open official listing pages and retain links plus record metadata. Do not bulk scrape or
+    redistribute full standard documents until the specific document terms or written permission are confirmed.
+  runtime_access_status: not_tested_from_application_runtime
+  source_page_review_status: official_nos_and_qp_listing_pages_reviewed_on_2026-10-17
+  version_or_release: No single release applies to all job roles. Each QP/NOS has its own code, version/review status,
+    and lifecycle; check the exact record.
+  license_terms_status: No blanket reuse licence for the full corpus was verified on the reviewed pages. Some standards/listings
+    contain specific training-use conditions, which must not be generalized to every document.
+  attribution_and_changes: Preserve exact QP/NOS name, code, issuing Sector Skill Council, NSQF/approval status,
+    page URL, and any stated permitted-use terms for each record.
+  limits:
+  - Listings distinguish NSQF-aligned/NSQC-cleared, under-industry-validation, draft/reviewed, and retired items;
+    these statuses are not interchangeable.
+  - Some retired-standard pages explicitly warn not to train against those retired standards; retired items must
+    not be presented as current pathways.
+  - NSDC vocational standards do not cover every academic, creative, research, or emerging occupation equally.
+  - A job-role label matching another taxonomy does not establish that competencies or qualification levels are
+    equivalent.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://www.nsdcindia.org/national-occupational-standards-and-model-curriculum
+  - https://nsdcindia.org/national-occupational-standards
+  - https://nsdcindia.org/nos-listing/150
+- id: onet_database
+  publisher: U.S. Department of Labor, Employment and Training Administration; National Center for O*NET Development
+  name: O*NET Database
+  official_url: https://www.onetcenter.org/database.html
+  release_archive_url: https://www.onetcenter.org/db_releases.html
+  license_url: https://www.onetcenter.org/license_db.html
+  geographic_scope: United States
+  source_role: Supplementary structured occupations, skills, abilities, work activities, and task reference; not
+    an India-specific labour-market source.
+  selection: selected_for_future_curated_bulk_snapshot
+  integration_status: not_integrated
+  planned_access_method: Official versioned database bulk download, preferably selected tabular CSV/JSON files.
+    Avoid Web Services for transformed local records unless the separate Web Services terms and constraints are
+    deliberately accepted.
+  runtime_access_status: official_download_options_verified_on_web;_local_download_not_tested
+  source_page_review_status: official_current_release_and_database_license_reviewed_on_2026-10-17
+  version_or_release: O*NET Database 31.0, August 2026; identified as the current production release on the official
+    release page at review time.
+  license_terms_status: Downloadable O*NET 31.0 Database files are licensed CC BY 4.0, subject to the exact database
+    licence and its exceptions. Attribution must name the version, credit the U.S. Department of Labor / Employment
+    and Training Administration, link the licence, and indicate modifications. Some external data on O*NET Web Services
+    is covered by different terms.
+  attribution_and_changes: Use the official attribution wording from the license page in the application/documentation;
+    include version 31.0, link CC BY 4.0, and disclose SkillScope modifications. Do not imply U.S. DOL endorsed
+    SkillScope.
+  limits:
+  - The O*NET-SOC taxonomy describes the U.S. economy and must not be used as Indian demand, wages, qualification
+    rules, or hiring requirements.
+  - Keep source ratings and occupational concepts distinct from student performance evidence and from SkillScope-authored
+    mappings.
+  - At ingestion, record the exact files, version, retrieval timestamp, source URLs, and SHA-256 digests.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://www.onetcenter.org/database.html
+  - https://www.onetcenter.org/db_releases.html
+  - https://www.onetcenter.org/license_db.html
+  - https://services.onetcenter.org/help/license_data
+- id: esco_classification
+  publisher: European Commission, Directorate-General for Employment, Social Affairs and Inclusion
+  name: European Skills, Competences, Qualifications and Occupations (ESCO) classification
+  official_url: https://esco.ec.europa.eu/en/about-esco/escopedia/escopedia/what-esco-and-how-use-it
+  download_url: https://esco.ec.europa.eu/en/use-esco/download
+  api_url: https://esco.ec.europa.eu/en/use-esco/use-esco-services-api/esco-web-service-api
+  license_terms_url: https://esco.ec.europa.eu/en/about-esco/faq?page=1
+  geographic_scope: European classification context; multilingual taxonomy, not an India-specific labour-market
+    model
+  source_role: Supplementary occupation/skill concept graph and cross-source vocabulary reference. Use its stable
+    concept URIs and occupation–skill relationships.
+  selection: selected_for_future_version_pinned_bulk_extract
+  integration_status: not_integrated
+  planned_access_method: Official downloadable English CSV package with only the required classification/relationship
+    modules; pin and inspect the exact package metadata before importing. Do not rely on an unpinned API default.
+  runtime_access_status: official_download_options_and_reuse_conditions_verified_on_web;_package_download_not_tested
+  source_page_review_status: official_download_api_and_reuse_FAQ_reviewed_on_2026-10-17
+  version_or_release: Download page identifies ESCO v1.2.1 with last update 10 December 2025. The web-service API
+    page lists default v1.0.9 and says v1.2.0 is also available; resolve this discrepancy by pinning and verifying
+    the actual exported package/version metadata during ingestion.
+  license_terms_status: The Commission states the ESCO classification can be reused free of charge under the EU
+    Commission document reuse decision 2011/833/EU. Use must acknowledge the ESCO classification of the European
+    Commission, and adapted/modified versions must be marked as such. API software component licences (e.g. EUPL/Apache)
+    are distinct from the classification-data reuse terms.
+  attribution_and_changes: 'For an application using ESCO, publish: “This service uses the ESCO classification of
+    the European Commission.” Clearly identify SkillScope adaptations and retain each concept URI.'
+  limits:
+  - ESCO was designed for European labour-market interoperability; role, skill and credential relationships are
+    not presumed equivalent to Indian contexts.
+  - Do not translate taxonomic mapping into a claim of local hiring demand or accepted Indian qualification.
+  - Avoid relying on the API default version because the official pages reviewed display a version discrepancy.
+  - A taxonomy relation supports occupational knowledge, not a psychological assessment or individual fit verdict.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://esco.ec.europa.eu/en/use-esco/download
+  - https://esco.ec.europa.eu/en/use-esco/use-esco-services-api/esco-web-service-api
+  - https://esco.ec.europa.eu/en/about-esco/faq?page=1
+- id: plfs_india_annual_report
+  publisher: Ministry of Statistics and Programme Implementation (MoSPI), National Statistics Office, Government
+    of India
+  name: Periodic Labour Force Survey (PLFS), Annual Report 2025
+  official_url: https://www.mospi.gov.in/uploads/latestReleases/latest_release_1774607827733_3e8964a9-268b-4cc9-ad65-cfc8a9e32f08_Press_note_AR_PLFS_2025_23032025_V2.1_26032026_final.pdf
+  catalogue_url: https://esankhyiki.mospi.gov.in/catalogue-main/catalogue?page=0&product=PLFS
+  geographic_scope: India; aggregate labour-market statistics
+  source_role: Separate labour-market context panel with explicit date/geography; not a student skill or aptitude
+    source.
+  selection: selected_context_only_link_first
+  integration_status: not_integrated
+  planned_access_method: Link to the official Annual Report 2025 and catalogue. Before embedding extracted figures,
+    verify exact table/context and reuse conditions; retain reporting period and publication date alongside every
+    figure.
+  runtime_access_status: official_pdf_and_catalogue_visible_in_web_research;_local_data_import_not_tested
+  source_page_review_status: official_mospi_publication_reviewed_on_2026-10-17
+  version_or_release: Annual Report 2025, covering January–December 2025; official press note dated 27 March 2026.
+  license_terms_status: Specific blanket licence/redistribution terms for the report tables were not verified in
+    this review. Use link-first referencing and do not assume the report is openly licensed for bulk redistribution.
+  attribution_and_changes: Cite MoSPI/NSO, report title, reporting period, publication date, exact table/page, access
+    date and geography. Clearly mark any derived calculation.
+  limits:
+  - PLFS is aggregate labour-market evidence and must never contribute to individual interest, ability, personality,
+    potential, or recommendation scores.
+  - Publication and survey timing mean reported labour conditions lag current vacancies.
+  - Do not compare estimates across periods, definitions, or geographies unless methods and denominators are compatible.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://www.mospi.gov.in/uploads/latestReleases/latest_release_1774607827733_3e8964a9-268b-4cc9-ad65-cfc8a9e32f08_Press_note_AR_PLFS_2025_23032025_V2.1_26032026_final.pdf
+  - https://esankhyiki.mospi.gov.in/catalogue-main/catalogue?page=0&product=PLFS
+- id: onet_interest_profiler_tools
+  publisher: U.S. Department of Labor, Employment and Training Administration; National Center for O*NET Development
+  name: O*NET Career Exploration Tools, including Interest Profiler
+  official_url: https://www.onetcenter.org/license_tools.html
+  geographic_scope: U.S.-origin interest exploration instrument
+  source_role: Reviewed as a licence constraint; not selected as a questionnaire to copy into SkillScope MVP.
+  selection: excluded_from_mvp_instrument_copy
+  integration_status: not_integrated
+  planned_access_method: Develop original age-appropriate challenge/feedback prompts for the MVP. If later using
+    exact tool content, follow its tool-specific licence; if modifying/extending tool content, satisfy O*NET Tools
+    Developer License and product-validation requirements.
+  runtime_access_status: licence_page_reviewed;_no_tool_content_imported
+  source_page_review_status: official_tool_specific_license_reviewed_on_2026-10-17
+  version_or_release: Varies by tool and archived/current tool release; no instrument version selected.
+  license_terms_status: Official page states verbatim redistribution is under CC BY-ND 4.0 with attribution and
+    no modified/extended redistribution; modification/extension requires the O*NET Tools Developer License, attribution,
+    a link to the licence page, and validation of all products incorporating tool content.
+  attribution_and_changes: Not applicable to the original SkillScope prompts because they will be independently
+    authored. Never describe those prompts as O*NET-derived or psychometrically validated absent a proper licensed,
+    validated process.
+  limits:
+  - Do not lift, paraphrase question sequences, or reproduce scoring from the Interest Profiler without a documented
+    legal basis and validation plan.
+  - Similarity to RIASEC concepts does not make a new prompt set a validated psychometric instrument.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://www.onetcenter.org/license_tools.html
+  - https://www.onetcenter.org/license_agreements.html
+
+- id: onet_online_curated_sample
+  publisher: U.S. Department of Labor, Employment and Training Administration; National Center for O*NET Development
+  name: O*NET OnLine curated occupation extract
+  official_url: https://www.onetonline.org/
+  license_url: https://www.onetonline.org/help/license
+  geographic_scope: United States occupational reference context
+  source_role: Small source-backed fallback extract covering nine varied O*NET OnLine occupational profiles, including selected tasks and Essential Skills section labels, when the full O*NET 31.0 bulk package cannot be fetched in the current runtime.
+  selection: bundled_curated_extract
+  integration_status: curated_extract_imported_not_full_source_integrated
+  planned_access_method: Replace or expand only through a version-pinned official O*NET Database or other separately verified permitted source route.
+  runtime_access_status: bundled_static_extract_imported; runtime_fetch_not_performed
+  source_page_review_status: official O*NET OnLine licence/reference reviewed on 2026-10-17
+  version_or_release: Curated extract captured 2026-10-17; records retain their source profile identifiers.
+  license_terms_status: Curated content is limited to a small adapted extract and excludes known third-party content; exact O*NET OnLine licence/exclusions govern the included material.
+  attribution_and_changes: Publish O*NET attribution and clearly disclose SkillScope modifications; do not imply USDOL/ETA endorsement.
+  limits:
+  - This is not the complete O*NET database, is not a live feed, and was imported from a bundled static snapshot rather than a runtime fetch.
+  - U.S. occupational context must not be treated as Indian labour demand, wages, qualifications, or individual aptitude.
+  - Curated paraphrases are SkillScope adaptations and must remain distinguishable from original source values. SkillScope coverage-domain tags are editorial metadata, not official categories. Essential Skill labels are listed in the cited occupation pages, but stable source skill-element IDs and ratings were not captured; they are occupation-scoped references only.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://www.onetonline.org/
+  - https://www.onetonline.org/help/license
+- id: esco_curated_sample
+  publisher: European Commission, Directorate-General for Employment, Social Affairs and Inclusion
+  name: ESCO curated occupation extract
+  official_url: https://esco.ec.europa.eu/en/use-esco/download
+  license_terms_url: https://esco.ec.europa.eu/en/about-esco/faq?page=1
+  geographic_scope: European classification context
+  source_role: Small source-backed fallback extract for one ESCO occupation concept; used for provenance and demonstration alongside nine O*NET OnLine profile extracts while the official package workflow is not available in the current runtime.
+  selection: bundled_curated_extract
+  integration_status: curated_extract_imported_not_full_source_integrated
+  planned_access_method: Import a version-pinned official ESCO CSV package after package selection, retrieval, checksum, language, and terms are verified.
+  runtime_access_status: bundled_static_extract_imported; runtime_fetch_not_performed
+  source_page_review_status: official ESCO download, structure, API and reuse conditions reviewed on 2026-10-17
+  version_or_release: ESCO v1.2.1 context retained in the curated record; official bulk package not downloaded in this runtime.
+  license_terms_status: ESCO classification may be reused under the European Commission document reuse framework with required acknowledgement and clear identification of adaptations.
+  attribution_and_changes: Publish the required ESCO acknowledgement and clearly identify SkillScope adaptations.
+  limits:
+  - One curated concept is not a complete ESCO dataset or live API result; it was imported from a bundled static snapshot rather than a runtime fetch. Crosswalks to O*NET OnLine remain editorially reviewed related mappings, not exact equivalences.
+  - European classification context does not establish Indian hiring demand, salary, regulated qualifications, or individual fit.
+  - Exact bulk-package version must be verified at import time; do not infer it from the current website version alone.
+  reviewed_on: '2026-10-17'
+  evidence_urls:
+  - https://esco.ec.europa.eu/en/use-esco/download
+  - https://esco.ec.europa.eu/en/structure-esco-downloadable-datasets
+  - https://esco.ec.europa.eu/en/about-esco/faq?page=1

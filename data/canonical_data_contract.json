@@ -1,0 +1,33 @@
+{
+  "contract_version": "1.0.0",
+  "project": "SkillScope AI",
+  "purpose": "Canonical schema for traceable sourced career, skill, qualification and labour-market evidence.",
+  "entities": {
+    "source_record": {
+      "required": ["source_id", "source_record_id", "publisher", "title", "source_type", "accessed_at", "quality_status"],
+      "provenance": ["source_uri", "record_uri", "source_version", "release_date", "license_reference", "checksum_sha256"]
+    },
+    "canonical_entity": {
+      "required": ["internal_id", "entity_type", "source_id", "source_record_id", "source_title", "publisher", "source_type", "source_values", "normalized_values", "ingested_at", "quality_status"],
+      "lineage": ["transformation_notes", "confidence", "limitations"]
+    },
+    "provenance_link": {
+      "required": ["entity_internal_id", "source_id", "source_record_id", "mapping_type", "created_at"],
+      "mapping_types": ["exact", "reviewed_related", "weak_lexical", "unresolved"]
+    },
+    "career_fact": {
+      "required": ["fact_id", "entity_internal_id", "fact_type", "statement", "value", "display_status"],
+      "display_rule": "A sourced fact must resolve to a canonical entity and provenance link before display."
+    }
+  },
+  "source_types": ["official", "research", "user_provided", "heuristic", "demo_fixture"],
+  "quality_statuses": ["unverified", "reviewed", "verified", "stale", "conflicted"],
+  "rules": [
+    "Never overwrite original source values when normalizing.",
+    "Never merge source taxonomies without preserving source identifiers and mapping notes.",
+    "Never infer individual aptitude from aggregate labour-market data.",
+    "A research page being readable does not mean its data is integrated or reusable.",
+    "Cached or curated snapshots must retain access date, version, checksum where available, and licence/terms reference.",
+    "Heuristics and demo fixtures must remain distinguishable from sourced facts."
+  ]
+}
